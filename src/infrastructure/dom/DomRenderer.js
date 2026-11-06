@@ -461,10 +461,10 @@ export class DomRenderer {
         <div class="card-media" id="media-${vm.id}">
           <div class="card-tags">
             <div class="stack">
-              ${isVipCard ? '<span class="tag tag-gold">👑 VIP SECRET DROP</span>' : ''}
-              ${vm.isCritical ? `<span class="tag tag-red"><span class="live warn"></span> ÚLTIMAS ${vm.stock} UDS</span>` : `<span class="tag"><span class="live"></span> ${vm.stockFormatted}</span>`}
+              ${isVipCard ? '<span class="tag tag-gold">[PIEZA // VIP ATELIER]</span>' : ''}
+              ${vm.isCritical ? `<span class="tag tag-red"><span class="live warn"></span> [STOCK // ÚLTIMAS ${vm.stock} UDS]</span>` : `<span class="tag"><span class="live"></span> [STOCK // ${vm.stockFormatted}]</span>`}
             </div>
-            ${vm.hasDiscount ? `<span class="save">${vm.discountPct}</span>` : ''}
+            ${vm.hasDiscount ? `<span class="save">[${vm.discountPct}]</span>` : ''}
           </div>
 
           <!-- Slider Images -->
@@ -494,15 +494,16 @@ export class DomRenderer {
 
           <!-- Quick View Trigger -->
           <button type="button" class="quick-btn" onclick="window.MONARCC_APP.openQuickView('${vm.id}')">
-            VISTA RÁPIDA ↗
+            <span>VISTA RÁPIDA</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17l10-10M7 7h10v10"/></svg>
           </button>
         </div>
 
         <!-- Body -->
         <div class="card-body">
           <div class="card-meta">
-            <span>${vm.category}</span>
-            <span>MADE IN SOACHA</span>
+            <span class="card-ref">[REF // MNC-${vm.id.toUpperCase()}]</span>
+            <span class="card-origin">[ATELIER SOACHA]</span>
           </div>
 
           <h3 class="card-title" onclick="window.MONARCC_APP.openQuickView('${vm.id}')" title="${vm.name}">
@@ -511,7 +512,7 @@ export class DomRenderer {
 
           <div class="price-row">
             <span class="price-old mono">${vm.realPriceFormatted}</span>
-            <span class="price mono">${vm.priceFormatted}</span>
+            <span class="price mono gold-text">${vm.priceFormatted}</span>
           </div>
 
           <!-- Size & Color Selectors -->
@@ -532,12 +533,13 @@ export class DomRenderer {
                           onclick="window.MONARCC_APP.selectColor('${vm.id}', ${idx}, event)"></button>
                 `).join('')}
               </div>
-            ` : `<span class="mono dim" style="font-size: 11px;">${vm.activeColor.name}</span>`}
+            ` : `<span class="mono dim" style="font-size: 11px;">[${vm.activeColor.name}]</span>`}
           </div>
 
           <!-- Add to Bag -->
-          <button type="button" class="btn btn-dark btn-block" onclick="window.MONARCC_APP.addToCart('${vm.id}')">
-            AÑADIR A LA BOLSA
+          <button type="button" class="btn btn-dark btn-block btn-card-add" onclick="window.MONARCC_APP.addToCart('${vm.id}')">
+            <span>AÑADIR A LA BOLSA</span>
+            <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
         </div>
       </article>
@@ -553,30 +555,30 @@ export class DomRenderer {
       <article class="card card-locked" onclick="window.MONARCC_APP.onLockedCardClick()" title="Pieza Secreta — Haz clic para desbloquear">
         <div class="card-media">
           <div class="card-tags">
-            <span class="tag tag-gold">👑 CLASIFICADO</span>
+            <span class="tag tag-gold">[ESTADO // RESTRINGIDO]</span>
           </div>
-          <img src="media/generated_vip_golden_jacket.jpg" alt="Pieza Secreta VIP" loading="lazy" style="filter: brightness(0.22) blur(2px);">
+          <img src="media/generated_vip_golden_jacket.jpg" alt="Pieza Secreta VIP" loading="lazy" style="filter: brightness(0.25) blur(3px);">
           <div class="lock-overlay">
             <svg class="lock-crown-svg" viewBox="0 0 100 80" fill="currentColor">
               <polyline points="18,62 16,30 35,48 50,18 65,48 84,30 82,62"/>
               <circle cx="16" cy="24" r="4"/><circle cx="50" cy="11" r="4.5"/><circle cx="84" cy="24" r="4"/>
               <line x1="16" y1="66" x2="84" y2="66" stroke="currentColor" stroke-width="4"/>
             </svg>
-            <strong>CÍRCULO MONARCA</strong>
-            <span>Toca la corona 3 veces o haz clic aquí</span>
-            <div class="tap-pill mono">SECRETO 0/3</div>
+            <strong>CÍRCULO MONARCA // DROP CERO</strong>
+            <span>Acceso confidencial por código o triple clic en corona</span>
+            <div class="tap-pill mono">[TELEMETRÍA 0/3]</div>
           </div>
         </div>
         <div class="card-body">
           <div class="card-meta">
-            <span>EDICIÓN CERO</span>
-            <span>NUMERADA A MANO</span>
+            <span>[EDICIÓN CERO]</span>
+            <span>[NUMERADA A MANO]</span>
           </div>
           <h3 class="card-title">Chaqueta Monarca Golden Embroidered</h3>
           <div class="price-row">
-            <span class="price mono gold-text">ACCESO EXCLUSIVO</span>
+            <span class="price mono gold-text">ACCESO EXCLUSIVO // CLASIFICADO</span>
           </div>
-          <button type="button" class="btn btn-outline btn-block">DESBLOQUEAR CON CONTRASEÑA</button>
+          <button type="button" class="btn btn-outline btn-block">DESBLOQUEAR CON CREDENCIAL ↗</button>
         </div>
       </article>
     `;
@@ -587,12 +589,12 @@ export class DomRenderer {
       <div class="breaker" id="drop-breaker">
         <div class="breaker-drop">
           <div class="breaker-copy">
-            <span class="eyebrow"><span class="dot"></span> EDICIÓN LIMITADA MOTORSPORT 2026</span>
+            <span class="eyebrow"><span class="dot"></span> DROP MOTORSPORT 2026 // EDICIÓN LIMITADA</span>
             <h2 class="h-display" style="font-size: clamp(26px, 3.8vw, 44px); margin: 0;">
-              SOACHA SYNDICATE // COLECCIÓN RACING
+              SOACHA SYNDICATE // SERIE RACING
             </h2>
             <p class="lead">
-              Inspirada en el motociclismo y la cultura de pista. Confeccionada con cuello alto estructurado, parches termosellados de alta resistencia y cremalleras de doble vía.
+              Confección pesada con cuello alto estructurado, parches termosellados de alta resistencia y cremalleras de doble vía. Caída rígida de 380–400 GSM formulada para el clima de la sabana y el asfalto.
             </p>
 
             <!-- Countdown Timer -->
@@ -617,7 +619,8 @@ export class DomRenderer {
 
             <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
               <a href="https://wa.me/573236043408?text=Hola%20Monarcc,%20quiero%20separar%20mi%20prenda%20del%20drop%20Motorsport" target="_blank" class="btn btn-gold">
-                SEPARAR POR WHATSAPP ↗
+                <span>SEPARAR POR WHATSAPP</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17l10-10M7 7h10v10"/></svg>
               </a>
               <button type="button" class="btn btn-ghost" onclick="window.MONARCC_APP.openQuickView('p02')">
                 VER CHAQUETA ORACLE
@@ -638,23 +641,23 @@ export class DomRenderer {
       <div class="breaker" id="lookbook-1">
         <div class="breaker-video">
           <div class="breaker-copy">
-            <span class="eyebrow"><span class="dot"></span> LOOKBOOK EN MOVIMIENTO • VOL. 01</span>
+            <span class="eyebrow"><span class="dot"></span> LOOKBOOK VOL. 01 // TEXTURA &amp; VOLUMEN 380G</span>
             <h2 class="h-display" style="font-size: clamp(24px, 3.2vw, 38px); margin: 0;">
-              TACTO &amp; CAÍDA DEL PERCHADO 320G
+              TACTO &amp; CAÍDA DEL PERCHADO PEINADO
             </h2>
             <p class="lead">
-              Murales de video editorial grabados en el estudio. Reproducción continua sin cortes para apreciar la textura del algodón peinado.
+              Murales de video editorial filmados en el taller. Confección continua de alto gramaje con caída boxy estructurada sin deformación.
             </p>
 
             <ul class="detail-list">
               <li>Cremallera metálica reforzada de dientes gruesos</li>
-              <li>Capota doblemente estructurada que no se deforma</li>
-              <li>Bordado de alta densidad con hilo japonés</li>
+              <li>Capota doblemente estructurada con peso de 400 GSM</li>
+              <li>Bordado de alta densidad con hilo industrial japonés</li>
             </ul>
 
             <div style="margin-top: 12px;">
               <button type="button" class="btn btn-dark" onclick="window.MONARCC_APP.filterCat('Hoodies')">
-                EXPLORAR HOODIES
+                EXPLORAR HOODIES ↗
               </button>
             </div>
           </div>
@@ -693,23 +696,23 @@ export class DomRenderer {
       <div class="breaker" id="lookbook-2">
         <div class="breaker-video reverse">
           <div class="breaker-copy">
-            <span class="eyebrow"><span class="dot"></span> LOOKBOOK EN MOVIMIENTO • VOL. 02</span>
+            <span class="eyebrow"><span class="dot"></span> LOOKBOOK VOL. 02 // LÍNEA SCUDERIA EN MOVIMIENTO</span>
             <h2 class="h-display" style="font-size: clamp(24px, 3.2vw, 38px); margin: 0;">
-              LÍNEA SCUDERIA &amp; OUTFITS DE CALLE
+              LÍNEA SCUDERIA &amp; CORTES DE PISTA
             </h2>
             <p class="lead">
-              Detalle de forros y terminaciones de cuello alto. Piezas diseñadas para el frío de la sabana y el asfalto.
+              Detalle de forros térmicos y terminaciones de cuello alto. Piezas diseñadas para el frío de la sabana y el asfalto.
             </p>
 
             <ul class="detail-list">
-              <li>Franjas termoselladas con acabado mate</li>
-              <li>Puños acanalados de alta elasticidad</li>
+              <li>Franjas termoselladas con acabado mate antirreflejo</li>
+              <li>Puños acanalados 2x2 de alta recuperación</li>
               <li>Corte anatómico probado en el estudio</li>
             </ul>
 
             <div style="margin-top: 12px;">
               <button type="button" class="btn btn-dark" onclick="window.MONARCC_APP.filterCat('Chaquetas')">
-                EXPLORAR CHAQUETAS
+                EXPLORAR CHAQUETAS ↗
               </button>
             </div>
           </div>
@@ -749,20 +752,21 @@ export class DomRenderer {
         <div class="breaker-season">
           <div>
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-              <span class="tag tag-red"><span class="live warn"></span> STOCK CRÍTICO</span>
-              <span class="eyebrow" style="color: #FECACA;">DESCUENTO ESPECIAL DE TEMPORADA</span>
+              <span class="tag tag-red"><span class="live warn"></span> [ASIGNACIÓN FINAL]</span>
+              <span class="eyebrow" style="color: #FECACA;">EDICIÓN DE TEMPORADA // HASTA -23% OFF</span>
             </div>
             <h3 class="h-display" style="font-size: clamp(22px, 3vw, 34px); margin: 0 0 6px;">
-              PRENDAS DE TEMPORADA // HASTA -23% OFF
+              ARCHIVO TEMPORAL // PIEZAS SELECCIONADAS
             </h3>
             <p class="muted" style="margin: 0; font-size: 14px; max-width: 600px;">
-              Últimas unidades en inventario antes del cierre de producción del drop actual. Despacho prioritario en 24h.
+              Últimas unidades en inventario antes del cierre de producción del ciclo actual. Despacho prioritario en 24h.
             </p>
           </div>
 
           <div style="display: flex; gap: 10px; flex-shrink: 0;">
             <button type="button" class="btn btn-gold" onclick="window.MONARCC_APP.filterSeasonal()">
-              VER PRENDAS DE TEMPORADA ⚡
+              <span>VER SELECCIÓN DE TEMPORADA</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17l10-10M7 7h10v10"/></svg>
             </button>
           </div>
         </div>

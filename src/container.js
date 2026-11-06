@@ -272,7 +272,7 @@ export function bootstrapApplication() {
         catalogController.setSeasonalOnly(true);
         updateFilterBarUI();
         domRenderer.closeSidebar();
-        domRenderer.showToast('Filtrando por prendas con descuento de temporada ⚡');
+        domRenderer.showToast('Filtro activo: Edición especial de temporada');
 
         const grid = document.getElementById('catalog');
         if (grid) grid.scrollIntoView({ behavior: 'smooth' });
@@ -464,7 +464,7 @@ export function bootstrapApplication() {
         domRenderer.showToast('Video silenciado');
       } else {
         btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
-        domRenderer.showToast('Sonido activado 🔊');
+        domRenderer.showToast('Audio lookbook: Activado');
       }
     },
 
