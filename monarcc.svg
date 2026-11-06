@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <style>
+      500;600&display=swap');
+      .bg { fill: #000000; }
+      .white-shape { fill: #FFFFFF; }
+      .brand-title {
+        font-family: 'Montserrat', 'Century Gothic', 'Avenir', sans-serif;
+        font-weight: 500;
+        font-size: 78px;
+        fill: #FFFFFF;
+        letter-spacing: 0.32em;
+        text-anchor: middle;
+      }
+      .brand-subtitle {
+        font-family: 'Montserrat', 'Century Gothic', 'Avenir', sans-serif;
+        font-weight: 400;
+        font-size: 22.5px;
+        fill: #FFFFFF;
+        letter-spacing: 0.42em;
+        text-anchor: middle;
+      }
+    </style>
+  </defs>
+
+  <!-- Fondo negro -->
+  <rect width="1024" height="1024" class="bg" />
+
+  <!-- Grupo Corona y Elementos Gráficos -->
+  <g class="white-shape">
+    <!-- Puntos superiores de la corona -->
+    <circle cx="512" cy="255" r="15.5" />
+    <circle cx="304.5" cy="340" r="13.8" />
+    <circle cx="719.5" cy="340" r="13.8" />
+    <circle cx="418.5" cy="429.3" r="7.8" />
+    <circle cx="605.5" cy="429.3" r="7.8" />
+
+    <!-- Estructura poligonal geométrica de la corona -->
+    <polygon points="
+      315,374 366,562 378,562 356,471 
+      411,562 432,562 432,506 454,562 
+      476,562 512,393 548,562 570,562 
+      592,506 592,562 613,562 668,471 
+      646,562 657,562 709,374 605,551 
+      603,448 560,552 512,300 464,552 
+      421,448 419,551
+    " />
+
+    <!-- Barra horizontal inferior de la corona -->
+    <rect x="359" y="586" width="306" height="21" rx="1.5" />
+
+    <!-- Filetes (guiones) de la línea de soporte inferior -->
+    <rect x="234" y="763" width="52" height="3" rx="1.5" />
+    <rect x="738" y="763" width="52" height="3" rx="1.5" />
+  </g>
+
+  <!-- Tipografía MONARCC -->
+  <text x="525" y="718" class="brand-title">MONARCC</text>
+
+  <!-- Subtítulo TIENDA DE ROPA -->
+  <text x="517" y="771" class="brand-subtitle">TIENDA DE ROPA</text>
+</svg>

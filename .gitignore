@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+.npm/
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment & Cache
+.env
+.env.*
+.cache/
+dist/
+.wrangler/
+
+# Temporary screenshots
+image.png
+image copy.png
