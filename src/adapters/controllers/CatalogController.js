@@ -46,10 +46,21 @@ export class CatalogController {
       return ProductPresenter.toCardViewModel(p, opts);
     });
 
+    let totalStock = filteredProducts.reduce((sum, p) => sum + p.colors.reduce((s, c) => s + c.stock, 0), 0);
+    if (this.vipUnlocked && vipProduct) {
+      totalStock += vipProduct.colors[0]?.stock || 1;
+    }
+
+    const vipVm = vipProduct ? ProductPresenter.toCardViewModel(vipProduct, { size: vipProduct.sizes[0], colorIdx: 0 }) : null;
+
     if (this.domRenderer) {
+      const isFiltered = this.category !== 'TODOS' || Boolean(this.searchQuery) || Boolean(this.selectedSize) || Boolean(this.selectedColor) || this.onlySeasonal;
       this.domRenderer.renderCatalog(vms, {
-        isFiltered: this.category !== 'TODOS' || Boolean(this.searchQuery) || Boolean(this.selectedSize) || Boolean(this.selectedColor) || this.onlySeasonal,
-        activeCategory: this.category
+        isFiltered,
+        activeCategory: this.category,
+        totalStock,
+        vipUnlocked: this.vipUnlocked,
+        vipVm
       });
     }
 
@@ -104,11 +115,15 @@ export class CatalogController {
     this.cardOptions.set(productId, current);
   }
 
-  selectCardColor(productId, colorIdx) {
+  selectCardColorState(productId, colorIdx) {
     const current = this.cardOptions.get(productId) || { size: null, colorIdx, slideIdx: 0 };
     current.colorIdx = colorIdx;
     current.slideIdx = 0;
     this.cardOptions.set(productId, current);
+  }
+
+  selectCardColor(productId, colorIdx) {
+    this.selectCardColorState(productId, colorIdx);
     return this.filterAndRender();
   }
 
@@ -119,4 +134,3 @@ export class CatalogController {
     return ProductPresenter.toQuickViewViewModel(product, opts);
   }
 }
-

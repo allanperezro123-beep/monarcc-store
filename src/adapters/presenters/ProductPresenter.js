@@ -11,6 +11,11 @@ export class ProductPresenter {
     const activeSize = options.size || product.sizes[0];
     const discountPct = product.getDiscountPercentage();
 
+    const slides = [
+      { pos: product.main.pos, zoom: product.main.zoom, label: 'Plano General' },
+      ...product.views
+    ];
+
     return {
       id: product.id,
       name: product.name,
@@ -19,6 +24,7 @@ export class ProductPresenter {
       realPriceFormatted: CurrencyPresenter.format(product.realPrice),
       hasDiscount: discountPct > 0,
       discountPct: `-${discountPct}%`,
+      discountPctNumber: discountPct,
       isSeasonal: product.isSeasonal(),
       fabric: product.fabric,
       description: product.description,
@@ -30,23 +36,16 @@ export class ProductPresenter {
         ...c,
         isActive: i === colorIdx
       })),
+      stock: activeColor.stock,
       stockFormatted: activeColor.stock === 1 ? '1 UNIDAD DISPONIBLE' : `${activeColor.stock} UDS EN STOCK`,
-      isLowStock: activeColor.stock <= 2
-    };
-  }
-
-  static toQuickViewViewModel(product, options = {}) {
-    const cardVm = ProductPresenter.toCardViewModel(product, options);
-    const slides = [
-      { pos: product.main.pos, zoom: product.main.zoom, label: 'Plano General' },
-      ...product.views
-    ];
-
-    return {
-      ...cardVm,
+      isCritical: activeColor.stock <= 3,
+      isLowStock: activeColor.stock <= 2,
       slides,
       activeSlideIdx: options.slideIdx || 0
     };
   }
-}
 
+  static toQuickViewViewModel(product, options = {}) {
+    return ProductPresenter.toCardViewModel(product, options);
+  }
+}

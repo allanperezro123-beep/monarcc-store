@@ -175,10 +175,11 @@ export function bootstrapApplication() {
     // Card Slides & Options
     slide(productId, delta, event) {
       if (event) event.stopPropagation();
-      const current = cardOptionsMap.get(productId) || { size: null, colorIdx: 0, slideIdx: 0 };
-      current.slideIdx = (current.slideIdx || 0) + delta;
-      cardOptionsMap.set(productId, current);
-      catalogController.filterAndRender();
+      domRenderer.slide(productId, delta);
+    },
+
+    onSliderScroll(productId, el) {
+      domRenderer.onSliderScroll(productId, el);
     },
 
     prevSlide(productId, event) {
@@ -203,9 +204,13 @@ export function bootstrapApplication() {
       }
     },
 
-    selectColor(productId, colorIdx, event) {
+    async selectColor(productId, colorIdx, event) {
       if (event) event.stopPropagation();
-      catalogController.selectCardColor(productId, colorIdx);
+      const product = await productRepository.getById(productId);
+      if (product && product.colors[colorIdx]) {
+        catalogController.selectCardColorState(productId, colorIdx);
+        domRenderer.updateCardColor(productId, colorIdx, product.colors[colorIdx]);
+      }
     },
 
     // Quick View Modal

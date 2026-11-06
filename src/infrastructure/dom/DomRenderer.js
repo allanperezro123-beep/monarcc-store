@@ -225,35 +225,83 @@ export class DomRenderer {
     }
   }
 
-  renderCatalog(productVms, { isFiltered = false, activeCategory = 'TODOS' } = {}) {
-    const grid = document.getElementById('catalog-grid');
+  renderCatalog(productVms, { isFiltered = false, activeCategory = 'TODOS', totalStock = 50, vipUnlocked = false, vipVm = null } = {}) {
+    const grid = document.getElementById('products-grid-container') || document.getElementById('catalog-grid');
     if (!grid) return;
 
+    const stockCounter = document.getElementById('header-stock-count');
+    const inventoryCount = document.getElementById('sidebar-inventory-count');
+    if (stockCounter) stockCounter.textContent = `${totalStock} UDS EN STOCK`;
+    if (inventoryCount) inventoryCount.textContent = totalStock;
+
+    const empty = document.getElementById('no-results-state');
+
     if (productVms.length === 0) {
-      grid.innerHTML = `
-        <div class="empty-state" style="grid-column: 1 / -1;">
-          <h3 style="margin-top: 0;">No encontramos prendas con esos filtros</h3>
-          <p class="muted" style="margin-bottom: 20px;">Prueba ajustando el precio, las tallas o la categoría.</p>
-          <button type="button" class="btn btn-outline" onclick="window.MONARCC_APP.resetFilters()">RESTAURAR FILTROS</button>
-        </div>
-      `;
+      grid.innerHTML = '';
+      if (empty) empty.style.display = 'block';
       return;
     }
+    if (empty) empty.style.display = 'none';
 
     let html = '';
     productVms.forEach((vm, idx) => {
       html += this._renderCardHtml(vm);
 
+      const count = idx + 1;
+
       // Breakers rhythm: insert editorial banners every 4 items if not heavily filtered
       if (!isFiltered) {
-        if (idx === 3) html += this._getBreakerDropHtml();
-        if (idx === 7) html += this._getBreakerVideo1Html();
-        if (idx === 11) html += this._getBreakerSeasonHtml();
-        if (idx === 15) html += this._getBreakerVideo2Html();
+        if (count === 4) {
+          html += this._getBreakerDropHtml();
+        } else if (count === 6) {
+          html += this._getBreakerVideosPair1();
+        } else if (count === 8) {
+          html += this._getBreakerVideosPair2();
+        }
       }
     });
 
+    if (!isFiltered) {
+      html += this._getBreakerSeasonHtml();
+      html += this._renderVipCard(vipUnlocked, vipVm);
+    } else if (vipUnlocked && vipVm) {
+      html += this._renderCardHtml(vipVm);
+    }
+
     grid.innerHTML = html;
+  }
+
+  slide(productId, dir) {
+    const slider = document.getElementById(`slider-${productId}`);
+    if (!slider) return;
+    const itemWidth = slider.clientWidth;
+    slider.scrollBy({ left: dir * itemWidth, behavior: 'smooth' });
+  }
+
+  onSliderScroll(productId, sliderEl) {
+    const progress = document.getElementById(`progress-${productId}`);
+    if (!progress || !sliderEl) return;
+    const maxScroll = sliderEl.scrollWidth - sliderEl.clientWidth;
+    const pct = maxScroll > 0 ? (sliderEl.scrollLeft / maxScroll) * 100 : 0;
+    progress.style.width = Math.max(20, Math.min(100, pct)) + '%';
+  }
+
+  updateCardColor(productId, colorIdx, activeColor) {
+    const card = document.getElementById(`card-${productId}`);
+    if (!card) return;
+    card.querySelectorAll('.swatches .swatch').forEach((sw, i) => {
+      sw.classList.toggle('is-active', i === colorIdx);
+    });
+    card.querySelectorAll('.slider img').forEach(img => {
+      img.src = activeColor.img;
+    });
+    const tag = card.querySelector('.card-tags .tag');
+    if (tag) {
+      const stock = activeColor.stock;
+      const isCritical = stock <= 3;
+      tag.className = `tag ${isCritical ? 'tag-red' : ''}`;
+      tag.innerHTML = `<span class="live ${isCritical ? 'warn' : ''}"></span> ${isCritical ? `ÚLTIMAS ${stock} UDS` : `${stock} EN STOCK`}`;
+    }
   }
 
   renderQuickView(vm) {
@@ -402,77 +450,133 @@ export class DomRenderer {
   }
 
   _renderCardHtml(vm) {
-    if (vm.isVip) {
-      return `
-        <article class="card card-locked card-vip" id="card-${vm.id}">
-          <div class="card-media">
-            <span class="tag tag-gold" style="position: absolute; top: 12px; left: 12px; z-index: 3;">👑 EXCLUSIVO VIP</span>
-            <img src="${vm.activeColor.img}" alt="${vm.name}" loading="lazy">
-            <div class="lock-overlay" onclick="window.MONARCC_APP.openVipModal()">
-              <svg viewBox="0 0 100 80" fill="currentColor">
-                <polyline points="18,62 16,30 35,48 50,18 65,48 84,30 82,62"/>
-                <circle cx="16" cy="24" r="4"/><circle cx="50" cy="11" r="4.5"/><circle cx="84" cy="24" r="4"/>
-                <line x1="16" y1="66" x2="84" y2="66" stroke="currentColor" stroke-width="4"/>
-              </svg>
-              <strong>CÍRCULO MONARCA</strong>
-              <small>Pieza secreta desbloqueada</small>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-meta"><span>EDICIÓN NUMERADA</span><span class="mono">STOCK: 1 UD</span></div>
-            <h3 class="card-title" onclick="window.MONARCC_APP.openQuickView('${vm.id}')">${vm.name}</h3>
-            <div class="price-row">
-              <span class="price-old mono">${vm.realPriceFormatted}</span>
-              <span class="price mono gold-text">${vm.priceFormatted}</span>
-              <span class="save">-31% VIP</span>
-            </div>
-            <button type="button" class="btn btn-gold" onclick="window.MONARCC_APP.addToCart('${vm.id}')">AÑADIR A LA BOLSA</button>
-          </div>
-        </article>
-      `;
-    }
+    const isVipCard = vm.isVip;
+    const slides = vm.slides || [
+      { pos: 'center center', zoom: 1, label: 'Plano General' }
+    ];
 
     return `
-      <article class="card" id="card-${vm.id}">
-        <div class="card-media">
-          <span class="tag ${vm.isLowStock ? 'tag-red' : ''}">
-            <span class="live ${vm.isLowStock ? 'warn' : ''}"></span>
-            <span class="mono">${vm.stockFormatted}</span>
-          </span>
-          <img src="${vm.activeColor.img}" alt="${vm.name}" loading="lazy">
-          <button type="button" class="slide-arrow prev" onclick="window.MONARCC_APP.prevSlide('${vm.id}', event)" aria-label="Ver ángulo anterior">
+      <article class="card ${isVipCard ? 'card-vip' : ''}" data-id="${vm.id}" id="card-${vm.id}">
+        <!-- Media Slider -->
+        <div class="card-media" id="media-${vm.id}">
+          <div class="card-tags">
+            <div class="stack">
+              ${isVipCard ? '<span class="tag tag-gold">👑 VIP SECRET DROP</span>' : ''}
+              ${vm.isCritical ? `<span class="tag tag-red"><span class="live warn"></span> ÚLTIMAS ${vm.stock} UDS</span>` : `<span class="tag"><span class="live"></span> ${vm.stockFormatted}</span>`}
+            </div>
+            ${vm.hasDiscount ? `<span class="save">${vm.discountPct}</span>` : ''}
+          </div>
+
+          <!-- Slider Images -->
+          <div class="slider" id="slider-${vm.id}" onscroll="window.MONARCC_APP.onSliderScroll('${vm.id}', this)">
+            ${slides.map((v) => `
+              <div class="slide-item">
+                <img src="${vm.activeColor.img}" alt="${vm.name} - ${v.label}"
+                     style="object-position: ${v.pos}; transform: scale(${v.zoom}); transform-origin: ${v.pos};"
+                     loading="lazy" draggable="false">
+                <span class="slide-label">${v.label}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Slide Controls -->
+          <button type="button" class="slide-arrow prev" onclick="window.MONARCC_APP.slide('${vm.id}', -1, event)" aria-label="Anterior">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-          <button type="button" class="slide-arrow next" onclick="window.MONARCC_APP.nextSlide('${vm.id}', event)" aria-label="Ver siguiente ángulo">
+          <button type="button" class="slide-arrow next" onclick="window.MONARCC_APP.slide('${vm.id}', 1, event)" aria-label="Siguiente">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
+
+          <!-- Slide Progress -->
+          <div class="slide-progress">
+            <span id="progress-${vm.id}" style="width: ${100 / Math.max(1, slides.length)}%;"></span>
+          </div>
+
+          <!-- Quick View Trigger -->
           <button type="button" class="quick-btn" onclick="window.MONARCC_APP.openQuickView('${vm.id}')">
             VISTA RÁPIDA ↗
           </button>
         </div>
+
+        <!-- Body -->
         <div class="card-body">
-          <div class="card-meta"><span>${vm.category}</span><span class="mono">MADE IN SOACHA</span></div>
-          <h3 class="card-title" onclick="window.MONARCC_APP.openQuickView('${vm.id}')" title="${vm.name}">${vm.name}</h3>
+          <div class="card-meta">
+            <span>${vm.category}</span>
+            <span>MADE IN SOACHA</span>
+          </div>
+
+          <h3 class="card-title" onclick="window.MONARCC_APP.openQuickView('${vm.id}')" title="${vm.name}">
+            ${vm.name}
+          </h3>
+
           <div class="price-row">
             <span class="price-old mono">${vm.realPriceFormatted}</span>
             <span class="price mono">${vm.priceFormatted}</span>
-            ${vm.hasDiscount ? `<span class="save">${vm.discountPct}</span>` : ''}
           </div>
+
+          <!-- Size & Color Selectors -->
           <div class="card-options">
             <div class="sizes">
               ${vm.allSizes.map(sz => `
-                <button type="button" class="size ${sz === vm.activeSize ? 'is-active' : ''}" onclick="window.MONARCC_APP.selectSize('${vm.id}', '${sz}', event)">${sz}</button>
+                <button type="button" class="size ${sz === vm.activeSize ? 'is-active' : ''}"
+                        onclick="window.MONARCC_APP.selectSize('${vm.id}', '${sz}', event)">${sz}</button>
               `).join('')}
             </div>
+
             ${vm.allColors.length > 1 ? `
               <div class="swatches">
-                ${vm.allColors.map((c, i) => `
-                  <button type="button" class="swatch ${c.isActive ? 'is-active' : ''}" style="background-color: ${c.hex};" title="${c.name}" onclick="window.MONARCC_APP.selectColor('${vm.id}', ${i}, event)"></button>
+                ${vm.allColors.map((c, idx) => `
+                  <button type="button" class="swatch ${c.isActive ? 'is-active' : ''}"
+                          style="background: ${c.hex};"
+                          title="${c.name} (${c.stock} uds)"
+                          onclick="window.MONARCC_APP.selectColor('${vm.id}', ${idx}, event)"></button>
                 `).join('')}
               </div>
-            ` : ''}
+            ` : `<span class="mono dim" style="font-size: 11px;">${vm.activeColor.name}</span>`}
           </div>
-          <button type="button" class="btn btn-outline" onclick="window.MONARCC_APP.addToCart('${vm.id}')">AGREGAR A LA BOLSA</button>
+
+          <!-- Add to Bag -->
+          <button type="button" class="btn btn-dark btn-block" onclick="window.MONARCC_APP.addToCart('${vm.id}')">
+            AÑADIR A LA BOLSA
+          </button>
+        </div>
+      </article>
+    `;
+  }
+
+  _renderVipCard(vipUnlocked, vipVm) {
+    if (vipUnlocked && vipVm) {
+      return this._renderCardHtml(vipVm);
+    }
+
+    return `
+      <article class="card card-locked" onclick="window.MONARCC_APP.onLockedCardClick()" title="Pieza Secreta — Haz clic para desbloquear">
+        <div class="card-media">
+          <div class="card-tags">
+            <span class="tag tag-gold">👑 CLASIFICADO</span>
+          </div>
+          <img src="media/generated_vip_golden_jacket.jpg" alt="Pieza Secreta VIP" loading="lazy" style="filter: brightness(0.22) blur(2px);">
+          <div class="lock-overlay">
+            <svg class="lock-crown-svg" viewBox="0 0 100 80" fill="currentColor">
+              <polyline points="18,62 16,30 35,48 50,18 65,48 84,30 82,62"/>
+              <circle cx="16" cy="24" r="4"/><circle cx="50" cy="11" r="4.5"/><circle cx="84" cy="24" r="4"/>
+              <line x1="16" y1="66" x2="84" y2="66" stroke="currentColor" stroke-width="4"/>
+            </svg>
+            <strong>CÍRCULO MONARCA</strong>
+            <span>Toca la corona 3 veces o haz clic aquí</span>
+            <div class="tap-pill mono">SECRETO 0/3</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span>EDICIÓN CERO</span>
+            <span>NUMERADA A MANO</span>
+          </div>
+          <h3 class="card-title">Chaqueta Monarca Golden Embroidered</h3>
+          <div class="price-row">
+            <span class="price mono gold-text">ACCESO EXCLUSIVO</span>
+          </div>
+          <button type="button" class="btn btn-outline btn-block">DESBLOQUEAR CON CONTRASEÑA</button>
         </div>
       </article>
     `;
@@ -480,113 +584,189 @@ export class DomRenderer {
 
   _getBreakerDropHtml() {
     return `
-      <section class="breaker breaker-drop" id="drop-breaker">
-        <div class="breaker-copy">
-          <span class="eyebrow"><span class="dot"></span> PRÓXIMO LANZAMIENTO</span>
-          <h3 class="h-display" style="font-size: clamp(24px, 3.2vw, 36px); margin: 0;">DROP EXCLUSIVO // PISTA 2026</h3>
-          <p class="muted" style="margin: 0; font-size: 14.5px;">Chaqueta Racing Red Bull &amp; Puma edición blanco perla. 15 unidades numeradas a mano en Soacha.</p>
-          <div class="countdown" id="drop-countdown">
-            <div><b id="cd-days">02</b><small>DÍAS</small></div>
-            <div><b id="cd-hours">14</b><small>HORAS</small></div>
-            <div><b id="cd-mins">38</b><small>MIN</small></div>
-            <div><b id="cd-secs">00</b><small>SEG</small></div>
+      <div class="breaker" id="drop-breaker">
+        <div class="breaker-drop">
+          <div class="breaker-copy">
+            <span class="eyebrow"><span class="dot"></span> EDICIÓN LIMITADA MOTORSPORT 2026</span>
+            <h2 class="h-display" style="font-size: clamp(26px, 3.8vw, 44px); margin: 0;">
+              SOACHA SYNDICATE // COLECCIÓN RACING
+            </h2>
+            <p class="lead">
+              Inspirada en el motociclismo y la cultura de pista. Confeccionada con cuello alto estructurado, parches termosellados de alta resistencia y cremalleras de doble vía.
+            </p>
+
+            <!-- Countdown Timer -->
+            <div class="countdown">
+              <div>
+                <b id="cd-days">02</b>
+                <small>DÍAS</small>
+              </div>
+              <div>
+                <b id="cd-hours">14</b>
+                <small>HORAS</small>
+              </div>
+              <div>
+                <b id="cd-mins">38</b>
+                <small>MIN</small>
+              </div>
+              <div>
+                <b id="cd-secs">19</b>
+                <small>SEG</small>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+              <a href="https://wa.me/573236043408?text=Hola%20Monarcc,%20quiero%20separar%20mi%20prenda%20del%20drop%20Motorsport" target="_blank" class="btn btn-gold">
+                SEPARAR POR WHATSAPP ↗
+              </a>
+              <button type="button" class="btn btn-ghost" onclick="window.MONARCC_APP.openQuickView('p02')">
+                VER CHAQUETA ORACLE
+              </button>
+            </div>
           </div>
-          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px;">
-            <button type="button" class="btn btn-gold" onclick="window.MONARCC_APP.addToCart('p02')">PREORDENAR AHORA</button>
-            <button type="button" class="btn btn-ghost" onclick="window.MONARCC_APP.openQuickView('p02')">VER CHAQUETA ORACLE</button>
+
+          <div class="breaker-media">
+            <img src="media/generated_redbull_white.jpg" alt="Chaqueta Racing Oracle Monarcc" loading="lazy">
           </div>
         </div>
-        <div class="breaker-media">
-          <img src="media/generated_redbull_white.jpg" alt="Chaqueta Racing Oracle Monarcc" loading="lazy">
-        </div>
-      </section>
+      </div>
     `;
   }
 
-  _getBreakerVideo1Html() {
+  _getBreakerVideosPair1() {
     return `
-      <section class="breaker breaker-video" id="lookbook-1">
-        <div class="breaker-copy">
-          <span class="eyebrow"><span class="dot"></span> LOOKBOOK EN MOVIMIENTO • VOL. 1</span>
-          <h3 class="h-display" style="font-size: clamp(22px, 3vw, 32px); margin: 0;">EL PERCHADO EN ACCIÓN</h3>
-          <p class="muted" style="margin: 0; font-size: 14px;">Descubre la caída de nuestro algodón de 340 g/m² en movimiento real. Sin efectos de estudio: textura cruda y cremalleras de acero.</p>
-          <ul class="detail-list">
-            <li>Algodón perchado grueso que no pierde cuerpo</li>
-            <li>Costuras reforzadas con doble pespunte</li>
-            <li>Cremalleras metálicas de deslizamiento suave</li>
-          </ul>
-        </div>
-        <div class="video-pair">
-          <div class="reel">
-            <video autoplay muted loop playsinline preload="metadata">
-              <source src="https://assets.mixkit.co/videos/preview/mixkit-young-man-wearing-a-jacket-posing-in-a-parking-lot-41484-large.mp4" type="video/mp4">
-            </video>
-            <button type="button" class="reel-sound" onclick="window.MONARCC_APP.toggleSound(this)" aria-label="Alternar audio">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-            </button>
-            <div class="reel-label"><b>Chaqueta Motorsport</b><span>Caída estructurada en asfalto</span></div>
+      <div class="breaker" id="lookbook-1">
+        <div class="breaker-video">
+          <div class="breaker-copy">
+            <span class="eyebrow"><span class="dot"></span> LOOKBOOK EN MOVIMIENTO • VOL. 01</span>
+            <h2 class="h-display" style="font-size: clamp(24px, 3.2vw, 38px); margin: 0;">
+              TACTO &amp; CAÍDA DEL PERCHADO 320G
+            </h2>
+            <p class="lead">
+              Murales de video editorial grabados en el estudio. Reproducción continua sin cortes para apreciar la textura del algodón peinado.
+            </p>
+
+            <ul class="detail-list">
+              <li>Cremallera metálica reforzada de dientes gruesos</li>
+              <li>Capota doblemente estructurada que no se deforma</li>
+              <li>Bordado de alta densidad con hilo japonés</li>
+            </ul>
+
+            <div style="margin-top: 12px;">
+              <button type="button" class="btn btn-dark" onclick="window.MONARCC_APP.filterCat('Hoodies')">
+                EXPLORAR HOODIES
+              </button>
+            </div>
           </div>
-          <div class="reel">
-            <video autoplay muted loop playsinline preload="metadata">
-              <source src="https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-urban-setting-41485-large.mp4" type="video/mp4">
-            </video>
-            <button type="button" class="reel-sound" onclick="window.MONARCC_APP.toggleSound(this)" aria-label="Alternar audio">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-            </button>
-            <div class="reel-label"><b>Hoodie Oversize</b><span>Capota doble capa sin deformación</span></div>
+
+          <!-- Video Pair (2 Videos) -->
+          <div class="video-pair">
+            <div class="reel">
+              <video src="media/post_003_DeMmJezRqur/video_01.mp4" playsinline loop muted autoplay preload="metadata"></video>
+              <button type="button" class="reel-sound" onclick="window.MONARCC_APP.toggleSound(this)" aria-label="Activar sonido">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              </button>
+              <div class="reel-label">
+                <b>HOODIE JPN // DETALLE</b>
+                <span>Cierre metálico y textura</span>
+              </div>
+            </div>
+
+            <div class="reel">
+              <video src="media/post_004_DeGJ5SmO2kZ/video_01.mp4" playsinline loop muted autoplay preload="metadata"></video>
+              <button type="button" class="reel-sound" onclick="window.MONARCC_APP.toggleSound(this)" aria-label="Activar sonido">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              </button>
+              <div class="reel-label">
+                <b>CAÍDA POSTERIOR</b>
+                <span>Corte Boxy Oversize</span>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
+    `;
+  }
+
+  _getBreakerVideosPair2() {
+    return `
+      <div class="breaker" id="lookbook-2">
+        <div class="breaker-video reverse">
+          <div class="breaker-copy">
+            <span class="eyebrow"><span class="dot"></span> LOOKBOOK EN MOVIMIENTO • VOL. 02</span>
+            <h2 class="h-display" style="font-size: clamp(24px, 3.2vw, 38px); margin: 0;">
+              LÍNEA SCUDERIA &amp; OUTFITS DE CALLE
+            </h2>
+            <p class="lead">
+              Detalle de forros y terminaciones de cuello alto. Piezas diseñadas para el frío de la sabana y el asfalto.
+            </p>
+
+            <ul class="detail-list">
+              <li>Franjas termoselladas con acabado mate</li>
+              <li>Puños acanalados de alta elasticidad</li>
+              <li>Corte anatómico probado en el estudio</li>
+            </ul>
+
+            <div style="margin-top: 12px;">
+              <button type="button" class="btn btn-dark" onclick="window.MONARCC_APP.filterCat('Chaquetas')">
+                EXPLORAR CHAQUETAS
+              </button>
+            </div>
+          </div>
+
+          <!-- Video Pair (2 Videos) -->
+          <div class="video-pair">
+            <div class="reel">
+              <video src="media/post_001_DekfatDsou8/video_01.mp4" playsinline loop muted autoplay preload="metadata"></video>
+              <button type="button" class="reel-sound" onclick="window.MONARCC_APP.toggleSound(this)" aria-label="Activar sonido">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              </button>
+              <div class="reel-label">
+                <b>SCUDERIA WHITE</b>
+                <span>Cuello alto &amp; cremallera</span>
+              </div>
+            </div>
+
+            <div class="reel">
+              <video src="media/post_007_Dc_jNaKxknN/video_01.mp4" playsinline loop muted autoplay preload="metadata"></video>
+              <button type="button" class="reel-sound" onclick="window.MONARCC_APP.toggleSound(this)" aria-label="Activar sonido">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              </button>
+              <div class="reel-label">
+                <b>OUTFIT COMPLETO</b>
+                <span>Streetwear en movimiento</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     `;
   }
 
   _getBreakerSeasonHtml() {
     return `
-      <section class="breaker breaker-season" id="season-breaker">
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <span class="tag tag-red" style="width: max-content;">⚡ OFERTAS DE TEMPORADA</span>
-          <h3 class="h-display" style="font-size: clamp(22px, 2.8vw, 30px); margin: 0;">PRENDAS CON DESCUENTO ACTIVO</h3>
-          <p class="muted" style="margin: 0; font-size: 14px;">Descuentos de hasta el 24% en piezas seleccionadas del drop anterior. Últimas unidades en bodega.</p>
-        </div>
-        <button type="button" class="btn btn-gold" onclick="window.MONARCC_APP.filterSeasonal()">VER OFERTAS ACTIVAS ⚡</button>
-      </section>
-    `;
-  }
+      <div class="breaker" id="season-breaker">
+        <div class="breaker-season">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <span class="tag tag-red"><span class="live warn"></span> STOCK CRÍTICO</span>
+              <span class="eyebrow" style="color: #FECACA;">DESCUENTO ESPECIAL DE TEMPORADA</span>
+            </div>
+            <h3 class="h-display" style="font-size: clamp(22px, 3vw, 34px); margin: 0 0 6px;">
+              PRENDAS DE TEMPORADA // HASTA -23% OFF
+            </h3>
+            <p class="muted" style="margin: 0; font-size: 14px; max-width: 600px;">
+              Últimas unidades en inventario antes del cierre de producción del drop actual. Despacho prioritario en 24h.
+            </p>
+          </div>
 
-  _getBreakerVideo2Html() {
-    return `
-      <section class="breaker breaker-video reverse" id="lookbook-2">
-        <div class="breaker-copy">
-          <span class="eyebrow"><span class="dot"></span> LOOKBOOK EN MOVIMIENTO • VOL. 2</span>
-          <h3 class="h-display" style="font-size: clamp(22px, 3vw, 32px); margin: 0;">DETALLES DE COSTURA Y BORDADO</h3>
-          <p class="muted" style="margin: 0; font-size: 14px;">La alta densidad del hilo en cada bordado evita que se deshilache tras el lavado. Diseñado para resistir el uso diario.</p>
-          <ul class="detail-list">
-            <li>Bordados de alta definición con hilo japonés</li>
-            <li>Pretinas con elástico de recuperación inmediata</li>
-            <li>Teñido reactivo que conserva el tono tras 50 lavadas</li>
-          </ul>
-        </div>
-        <div class="video-pair">
-          <div class="reel">
-            <video autoplay muted loop playsinline preload="metadata">
-              <source src="https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-urban-setting-41486-large.mp4" type="video/mp4">
-            </video>
-            <button type="button" class="reel-sound" onclick="window.MONARCC_APP.toggleSound(this)" aria-label="Alternar audio">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+          <div style="display: flex; gap: 10px; flex-shrink: 0;">
+            <button type="button" class="btn btn-gold" onclick="window.MONARCC_APP.filterSeasonal()">
+              VER PRENDAS DE TEMPORADA ⚡
             </button>
-            <div class="reel-label"><b>Chaqueta Racing KTM</b><span>Bordado en pecho de alta densidad</span></div>
-          </div>
-          <div class="reel">
-            <video autoplay muted loop playsinline preload="metadata">
-              <source src="https://assets.mixkit.co/videos/preview/mixkit-man-posing-in-a-hoodie-outdoors-41487-large.mp4" type="video/mp4">
-            </video>
-            <button type="button" class="reel-sound" onclick="window.MONARCC_APP.toggleSound(this)" aria-label="Alternar audio">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-            </button>
-            <div class="reel-label"><b>Conjunto Brooklyn 1898</b><span>Algodón tono moca en exteriores</span></div>
           </div>
         </div>
-      </section>
+      </div>
     `;
   }
 }
