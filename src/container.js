@@ -58,15 +58,15 @@ export function bootstrapApplication() {
   };
 
   // 3. Application Use Cases
-  const addToCartUseCase = new AddToCartUseCase({ productRepository });
-  const updateQtyUseCase = new UpdateCartItemQtyUseCase();
-  const removeCartItemUseCase = new RemoveCartItemUseCase();
+  const addToCartUseCase = new AddToCartUseCase(productRepository, storageService);
+  const updateQtyUseCase = new UpdateCartItemQtyUseCase(storageService);
+  const removeCartItemUseCase = new RemoveCartItemUseCase(storageService);
   const applyCouponUseCase = new ApplyCouponUseCase();
   const removeCouponUseCase = new RemoveCouponUseCase();
   const calculateTotalsUseCase = new CalculateOrderTotalsUseCase();
   const filterCatalogUseCase = new FilterCatalogUseCase();
   const trackShipmentUseCase = new TrackShipmentUseCase();
-  const unlockVipUseCase = new UnlockVipUseCase();
+  const unlockVipUseCase = new UnlockVipUseCase(storageService);
 
   // 4. Interface Adapters (Controllers)
   const cartController = new CartController({
