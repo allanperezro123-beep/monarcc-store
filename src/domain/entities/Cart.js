@@ -21,6 +21,10 @@ export class Cart {
     return Array.from(this._items.values());
   }
 
+  getAll() {
+    return this.getItems();
+  }
+
   getItem(key) {
     return this._items.get(key) || null;
   }
