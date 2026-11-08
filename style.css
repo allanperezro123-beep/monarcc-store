@@ -827,8 +827,10 @@ body.is-scrolled .header-logo-group:not([data-brand-mode="crown"]) .brand-wordma
 .breaker { grid-column: 1 / -1; margin: 20px 0; border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--line); background: var(--surface); animation: cardIn 0.6s var(--ease) both; }
 @media (min-width: 1024px) { .breaker { margin: 28px 0; } }
 
-.breaker-drop { display: grid; grid-template-columns: 1fr; background: radial-gradient(120% 120% at 0% 0%, #1A1711 0%, var(--surface) 55%); }
+.breaker-drop { position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr; background: radial-gradient(120% 120% at 0% 0%, #1A1711 0%, var(--surface) 55%); }
 @media (min-width: 900px) { .breaker-drop { grid-template-columns: 1.15fr 0.85fr; } }
+.breaker-drop > .breaker-copy,
+.breaker-drop > .breaker-media { position: relative; z-index: 1; }
 .breaker-copy { padding: 32px 22px; display: flex; flex-direction: column; gap: 16px; justify-content: center; }
 @media (min-width: 900px) { .breaker-copy { padding: 52px; } }
 .breaker-media { position: relative; min-height: 360px; }
@@ -1649,250 +1651,17 @@ body.is-scrolled .header-logo-group:not([data-brand-mode="crown"]) .brand-wordma
   }
 }
 
-/* ==========================================================================
-   ATELIER ENGINEERING LABORATORY (MATHEMATICAL PLOTS & CAD TOPOGRAPHY)
-   ========================================================================== */
-.section-lab {
-  background: #09090A;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  position: relative;
-  overflow: hidden;
-}
-
-.lab-head-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  color: var(--gold);
-  text-transform: uppercase;
-  background: rgba(197, 164, 109, 0.08);
-  border: 1px solid rgba(197, 164, 109, 0.24);
-  padding: 4px 10px;
-  border-radius: var(--r-xs);
-  margin-bottom: 12px;
-}
-
-.lab-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-  margin-bottom: 32px;
-}
-@media (min-width: 900px) {
-  .lab-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-  }
-}
-
-.lab-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.4s var(--ease), border-color 0.4s var(--ease), box-shadow 0.4s var(--ease);
-}
-.lab-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(197, 164, 109, 0.38);
-  box-shadow: 0 16px 36px -12px rgba(12, 12, 13, 0.65);
-}
-
-.lab-media-wrap {
-  position: relative;
-  aspect-ratio: 4 / 5;
-  background: #111113;
-  overflow: hidden;
-}
-
-.lab-media-wrap video {
+/* Discreet Aesthetic Ambient Grid Overlay in Editorial Breaker */
+.breaker-ambient-grid {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-}
-
-.lab-tag {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  padding: 3px 8px;
-  border-radius: var(--r-xs);
-  background: rgba(12, 12, 13, 0.82);
-  border: 1px solid rgba(244, 242, 238, 0.12);
-  color: var(--chalk);
-  backdrop-filter: blur(6px);
-  z-index: 2;
-}
-
-.lab-formula-pill {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  color: var(--gold);
-  background: rgba(12, 12, 13, 0.86);
-  border: 1px solid rgba(197, 164, 109, 0.28);
-  padding: 6px 10px;
-  border-radius: var(--r-xs);
-  backdrop-filter: blur(8px);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 2;
-}
-
-.lab-body {
-  padding: 18px 20px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex: 1;
-}
-
-.lab-title {
-  font-family: "Syne", sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--chalk);
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-
-.lab-desc {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--muted);
-  margin: 0;
-}
-
-.lab-specs {
-  margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px dashed var(--line);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  color: var(--dim);
-}
-
-.lab-specs span {
-  display: flex;
-  justify-content: space-between;
-}
-
-.lab-specs strong {
-  color: var(--chalk);
-  font-weight: 500;
-}
-
-/* Interactive ASCII CAD Simulator Canvas */
-.lab-simulator-panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  margin-top: 16px;
-}
-
-.lab-simulator-header {
-  padding: 14px 20px;
-  background: #111113;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.lab-simulator-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--chalk);
-}
-
-.lab-mode-group {
-  display: inline-flex;
-  gap: 6px;
-}
-
-.lab-mode-btn {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: var(--r-xs);
-  background: rgba(244, 242, 238, 0.04);
-  border: 1px solid var(--line);
-  color: var(--muted);
-  cursor: pointer;
-  transition: all 0.25s var(--ease);
-}
-.lab-mode-btn:hover {
-  color: var(--chalk);
-  border-color: rgba(197, 164, 109, 0.4);
-}
-.lab-mode-btn.is-active {
-  background: rgba(197, 164, 109, 0.12);
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-.lab-canvas-container {
-  position: relative;
-  width: 100%;
-  height: 280px;
-  background: #0C0C0D;
-  cursor: crosshair;
-  overflow: hidden;
-  touch-action: manipulation;
-}
-@media (min-width: 900px) {
-  .lab-canvas-container {
-    height: 340px;
-  }
-}
-
-.lab-canvas-container canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.lab-simulator-footer {
-  padding: 10px 18px;
-  background: #09090A;
-  border-top: 1px solid var(--line);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  color: var(--dim);
-}
-
-.lab-readout {
-  color: var(--gold);
-  font-weight: 500;
+  opacity: 0.08;
+  mix-blend-mode: screen;
+  filter: grayscale(1) contrast(1.1);
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
 }

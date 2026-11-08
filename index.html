@@ -145,7 +145,6 @@
 
           <nav class="nav" aria-label="Navegación principal">
             <a href="#catalog">Catálogo</a>
-            <a href="#lab">Laboratorio</a>
             <a href="#drop-breaker">Drop 2026</a>
             <a href="#lookbook-1">Lookbook</a>
             <a href="#tracking">Rastreo Inter</a>
@@ -355,99 +354,6 @@
         <h4 style="margin: 0 0 6px;">No encontramos prendas con esos filtros</h4>
         <p class="muted" style="margin: 0 0 16px; font-size: 13.5px;">Intenta cambiar la talla, el color o el rango de precio.</p>
         <button type="button" class="btn btn-gold" onclick="window.MONARCC_APP.resetFilters()">VER TODAS LAS PRENDAS</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ATELIER ENGINEERING LABORATORY (MATHEMATICAL PLOTS & CAD TOPOGRAPHY) -->
-  <section class="section section-lab" id="lab">
-    <div class="container">
-      <div class="section-head">
-        <div class="titles">
-          <span class="eyebrow"><span class="dot"></span> INGENIERÍA TEXTIL // PATRONAJE COMPUTACIONAL</span>
-          <h2 class="h-display h-section">LABORATORIO DE CORTE &amp; MODELADO MATEMÁTICO</h2>
-          <p class="lead">Modelado paramétrico de tensión textil, gramaje 380-420 GSM y topografía de caída sobredimensionada.</p>
-        </div>
-      </div>
-
-      <div class="lab-grid">
-        <article class="lab-card">
-          <div class="lab-media-wrap">
-            <span class="lab-tag">ALGORITMO 01 // MATRIZ 4:5</span>
-            <video src="media/math-plot-grid.mp4" poster="media/math-plot-grid-poster.jpg" autoplay loop muted playsinline preload="metadata" aria-label="Tensión biaxial de urdimbre y trama"></video>
-            <div class="lab-formula-pill">
-              <span>\(\sigma(x,y,t) = \nabla^2 \Phi(x,y) + \kappa \sin(\omega t)\)</span>
-              <span class="mono">420 GSM</span>
-            </div>
-          </div>
-          <div class="lab-body">
-            <h3 class="lab-title">Tensión Biaxial de Urdimbre</h3>
-            <p class="lab-desc">Cálculo de resistencia por centímetro cuadrado en tejido denso con deformación elástica controlada.</p>
-            <div class="lab-specs">
-              <span><span>Malla:</span> <strong>24 × 30 Nodos</strong></span>
-              <span><span>Tolerancia:</span> <strong>±0.02 mm</strong></span>
-              <span><span>Hilo:</span> <strong>Algodón Peinado 30/1</strong></span>
-            </div>
-          </div>
-        </article>
-        <article class="lab-card">
-          <div class="lab-media-wrap">
-            <span class="lab-tag">ALGORITMO 02 // ONDA ISOMÉTRICA</span>
-            <video src="media/math-lattice-wave.mp4" poster="media/math-lattice-wave-poster.jpg" autoplay loop muted playsinline preload="metadata" aria-label="Dinámica de caída y ondulación"></video>
-            <div class="lab-formula-pill">
-              <span>\(z(x,y,t) = A \cdot \sin(r - \omega t) \cdot e^{-\gamma r}\)</span>
-              <span class="mono">AXON 30°</span>
-            </div>
-          </div>
-          <div class="lab-body">
-            <h3 class="lab-title">Dinámica de Caída &amp; Draping</h3>
-            <p class="lab-desc">Propagación de ondas superficiales en el hombro caído de siluetas boxy oversize sin arrugas indeseadas.</p>
-            <div class="lab-specs">
-              <span><span>Proyección:</span> <strong>Isométrica 30°</strong></span>
-              <span><span>Amplitud:</span> <strong>18 mm Pico a Valle</strong></span>
-              <span><span>Silueta:</span> <strong>Drop Shoulder Relaxed</strong></span>
-            </div>
-          </div>
-        </article>
-        <article class="lab-card">
-          <div class="lab-media-wrap">
-            <span class="lab-tag">ALGORITMO 03 // MATRIZ POLAR</span>
-            <video src="media/math-polar-contour.mp4" poster="media/math-polar-contour-poster.jpg" autoplay loop muted playsinline preload="metadata" aria-label="Curvas de nivel y resonancia de corona"></video>
-            <div class="lab-formula-pill">
-              <span>\(r(\theta, t) = r_0 + \sum A_n \cos(n\theta + \phi_n)\)</span>
-              <span class="mono">5 PERLAS</span>
-            </div>
-          </div>
-          <div class="lab-body">
-            <h3 class="lab-title">Resonancia &amp; Curvas de Nivel</h3>
-            <p class="lab-desc">Matriz harmónica de 18 isolíneas pentagonales que codifican la geometría sagrada de la corona MONARCC.</p>
-            <div class="lab-specs">
-              <span><span>Isolíneas:</span> <strong>18 Anillos Polares</strong></span>
-              <span><span>Simetría:</span> <strong>Pentagonal C5</strong></span>
-              <span><span>Corte:</span> <strong>Patrón CNC Monarca</strong></span>
-            </div>
-          </div>
-        </article>
-      </div>
-      <div class="lab-simulator-panel">
-        <div class="lab-simulator-header">
-          <div class="lab-simulator-title">
-            <span class="dot"></span>
-            <span>SIMULADOR ASCII VIVA // DEFORMACIÓN DE MALLA INTERACTIVA</span>
-          </div>
-          <div class="lab-mode-group" role="group" aria-label="Modo de simulación ASCII">
-            <button type="button" class="lab-mode-btn is-active" data-lab-mode="contour" aria-pressed="true">TOPOGRAFÍA</button>
-            <button type="button" class="lab-mode-btn" data-lab-mode="crown" aria-pressed="false">CORONA MONARCA</button>
-            <button type="button" class="lab-mode-btn" data-lab-mode="grid" aria-pressed="false">TELAR CAD</button>
-          </div>
-        </div>
-        <div class="lab-canvas-container" id="lab-interactive-canvas-wrap">
-          <canvas id="lab-interactive-canvas" aria-label="Simulador interactivo ASCII"></canvas>
-        </div>
-        <div class="lab-simulator-footer">
-          <span class="lab-readout" id="lab-readout">ESTADO: ACTIVO • MODO: TOPOGRAFÍA • FREQ: 30 FPS</span>
-          <span>ARRASTRA EL CURSOR O TOCA PARA DEFORMAR LA MALLA</span>
-        </div>
       </div>
     </div>
   </section>
