@@ -619,6 +619,7 @@ export class DomRenderer {
     return `
       <div class="breaker" id="drop-breaker">
         <div class="breaker-drop">
+          <video class="breaker-ambient-grid" src="media/math-plot-grid.mp4" poster="media/math-plot-grid-poster.jpg" autoplay loop muted playsinline aria-hidden="true"></video>
           <div class="breaker-copy">
             <span class="eyebrow"><span class="dot"></span> DROP MOTORSPORT 2026 // EDICIÓN LIMITADA</span>
             <h2 class="h-display" style="font-size: clamp(26px, 3.8vw, 44px); margin: 0;">
