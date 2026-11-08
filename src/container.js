@@ -35,6 +35,7 @@ import { MobileDock } from './infrastructure/dom/MobileDock.js';
 import { TouchGestures } from './infrastructure/dom/TouchGestures.js';
 import { ScrollMachine } from './infrastructure/dom/ScrollMachine.js';
 import { AsciiCrownField } from './infrastructure/dom/AsciiCrownField.js';
+import { AsciiLabViewer } from './infrastructure/dom/AsciiLabViewer.js';
 import { GooglePayGateway } from './infrastructure/external/GooglePayGateway.js';
 
 // --- COMPOSITION ROOT FACTORY ---
@@ -47,6 +48,7 @@ export function bootstrapApplication() {
   const screenTransition = new ScreenTransition();
   const scrollMachine = new ScrollMachine({ downThreshold: 14, topThreshold: 2 });
   const asciiCrownField = new AsciiCrownField();
+  const asciiLabViewer = new AsciiLabViewer();
 
   // 2. Application State & Domain Aggregates
   const cart = new Cart();
@@ -699,6 +701,7 @@ export function bootstrapApplication() {
   scrollMachine.init();
   initPreloader();
   asciiCrownField.init();
+  asciiLabViewer.init();
   mobileDock.init();
   touchGestures.init();
   setupShippingSelects();
@@ -719,9 +722,11 @@ export function bootstrapApplication() {
     domRenderer,
     scrollMachine,
     asciiCrownField,
+    asciiLabViewer,
     destroy() {
       scrollMachine.destroy();
       asciiCrownField.destroy();
+      asciiLabViewer.destroy();
       activeIntervals.forEach(clearInterval);
       activeTimeouts.forEach(clearTimeout);
     }
