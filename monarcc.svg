@@ -1,62 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="200 365 1200 780" width="100%" height="100%" fill="none">
   <defs>
-    <style>
-      500;600&display=swap');
-      .bg { fill: #000000; }
-      .white-shape { fill: #FFFFFF; }
-      .brand-title {
-        font-family: 'Montserrat', 'Century Gothic', 'Avenir', sans-serif;
-        font-weight: 500;
-        font-size: 78px;
-        fill: #FFFFFF;
-        letter-spacing: 0.32em;
-        text-anchor: middle;
-      }
-      .brand-subtitle {
-        font-family: 'Montserrat', 'Century Gothic', 'Avenir', sans-serif;
-        font-weight: 400;
-        font-size: 22.5px;
-        fill: #FFFFFF;
-        letter-spacing: 0.42em;
-        text-anchor: middle;
-      }
-    </style>
+    <linearGradient id="monarccGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F4E5C2" />
+      <stop offset="38%" stop-color="#C5A46D" />
+      <stop offset="72%" stop-color="#DFC68E" />
+      <stop offset="100%" stop-color="#9A7D49" />
+    </linearGradient>
   </defs>
-
-  <!-- Fondo negro -->
-  <rect width="1024" height="1024" class="bg" />
-
-  <!-- Grupo Corona y Elementos Gráficos -->
-  <g class="white-shape">
-    <!-- Puntos superiores de la corona -->
-    <circle cx="512" cy="255" r="15.5" />
-    <circle cx="304.5" cy="340" r="13.8" />
-    <circle cx="719.5" cy="340" r="13.8" />
-    <circle cx="418.5" cy="429.3" r="7.8" />
-    <circle cx="605.5" cy="429.3" r="7.8" />
-
-    <!-- Estructura poligonal geométrica de la corona -->
-    <polygon points="
-      315,374 366,562 378,562 356,471 
-      411,562 432,562 432,506 454,562 
-      476,562 512,393 548,562 570,562 
-      592,506 592,562 613,562 668,471 
-      646,562 657,562 709,374 605,551 
-      603,448 560,552 512,300 464,552 
-      421,448 419,551
-    " />
-
-    <!-- Barra horizontal inferior de la corona -->
-    <rect x="359" y="586" width="306" height="21" rx="1.5" />
-
-    <!-- Filetes (guiones) de la línea de soporte inferior -->
-    <rect x="234" y="763" width="52" height="3" rx="1.5" />
-    <rect x="738" y="763" width="52" height="3" rx="1.5" />
+  <g class="monarcc-crown-group" fill="url(#monarccGoldGrad)" fill-rule="evenodd">
+    <path class="crown-body" pathLength="1" d="M 561 884 L 493 586 L 656 856 L 658 703 L 724 858 L 800 468 L 876 858 L 942 703 L 944 856 L 1107 586 L 1039 884 Z M 552 726 L 582 864 L 638 864 Z M 673 782 L 673 864 L 708 864 Z M 800 608 L 748 864 L 852 864 Z M 927 782 L 892 864 L 927 864 Z M 1048 726 L 962 864 L 1018 864 Z" />
+    <rect class="crown-bar" x="561" y="916" width="478" height="30" rx="2" pathLength="1" />
+    <circle class="crown-pearl" cx="800" cy="398" r="23" pathLength="1" />
+    <circle class="crown-pearl" cx="476" cy="531" r="20.5" pathLength="1" />
+    <circle class="crown-pearl" cx="1124" cy="531" r="20.5" pathLength="1" />
+    <circle class="crown-pearl" cx="654" cy="671" r="11.5" pathLength="1" />
+    <circle class="crown-pearl" cx="946" cy="671" r="11.5" pathLength="1" />
   </g>
-
-  <!-- Tipografía MONARCC -->
-  <text x="525" y="718" class="brand-title">MONARCC</text>
-
-  <!-- Subtítulo TIENDA DE ROPA -->
-  <text x="517" y="771" class="brand-subtitle">TIENDA DE ROPA</text>
+  <g class="monarcc-wordmark-group" fill="#F4F3EF" fill-rule="evenodd">
+    <path class="wordmark-m" pathLength="1" d="M 218 1126 L 218 1026 L 235 1026 L 268 1082 L 301 1026 L 318 1026 L 318 1126 L 302 1126 L 302 1055 L 274 1103 L 262 1103 L 234 1055 L 234 1126 Z" />
+    <path class="wordmark-o" pathLength="1" d="M 457 1025 C 485.17 1025 508 1047.83 508 1076 C 508 1104.17 485.17 1127 457 1127 C 428.83 1127 406 1104.17 406 1076 C 406 1047.83 428.83 1025 457 1025 Z M 457 1041 C 437.67 1041 422 1056.67 422 1076 C 422 1095.33 437.67 1111 457 1111 C 476.33 1111 492 1095.33 492 1076 C 492 1056.67 476.33 1041 457 1041 Z" />
+    <path class="wordmark-n" pathLength="1" d="M 596 1126 L 596 1026 L 612 1026 L 668 1099 L 668 1026 L 684 1026 L 684 1126 L 668 1126 L 612 1053 L 612 1126 Z" />
+    <path class="wordmark-a" pathLength="1" d="M 766 1126 L 809 1026 L 823 1026 L 866 1126 L 849 1126 L 839 1102 L 793 1102 L 783 1126 Z M 816 1047 L 799 1088 L 833 1088 Z" />
+    <path class="wordmark-r" pathLength="1" d="M 954 1126 L 954 1026 L 998 1026 C 1015.12 1026 1029 1039.88 1029 1057 C 1029 1071.4 1019.2 1083.5 1005.8 1087 L 1038 1126 L 1019 1126 L 989 1088 L 970 1088 L 970 1126 Z M 970 1041 L 970 1073 L 997 1073 C 1005.84 1073 1013 1065.84 1013 1057 C 1013 1048.16 1005.84 1041 997 1041 Z" />
+    <path class="wordmark-c1" pathLength="1" d="M 1208 1041 C 1198.4 1030.9 1184.9 1025 1171 1025 C 1142.83 1025 1120 1047.83 1120 1076 C 1120 1104.17 1142.83 1127 1171 1127 C 1184.9 1127 1198.4 1121.1 1208 1111 L 1196 1100 C 1189.4 1106.9 1180.6 1111 1171 1111 C 1151.67 1111 1136 1095.33 1136 1076 C 1136 1056.67 1151.67 1041 1171 1041 C 1180.6 1041 1189.4 1045.1 1196 1052 Z" />
+    <path class="wordmark-c2" pathLength="1" d="M 1382 1041 C 1372.4 1030.9 1358.9 1025 1345 1025 C 1316.83 1025 1294 1047.83 1294 1076 C 1294 1104.17 1316.83 1127 1345 1127 C 1358.9 1127 1372.4 1121.1 1382 1111 L 1370 1100 C 1363.4 1106.9 1354.6 1111 1345 1111 C 1325.67 1111 1310 1095.33 1310 1076 C 1310 1056.67 1325.67 1041 1345 1041 C 1354.6 1041 1363.4 1045.1 1370 1052 Z" />
+  </g>
 </svg>
