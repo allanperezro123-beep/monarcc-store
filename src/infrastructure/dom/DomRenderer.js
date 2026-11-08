@@ -489,7 +489,7 @@ export class DomRenderer {
           <div class="card-tags">
             <div class="stack">
               ${isVipCard ? '<span class="tag tag-gold">[PIEZA // VIP ATELIER]</span>' : ''}
-              ${vm.isCritical ? `<span class="tag tag-red"><span class="live warn"></span> [STOCK // ÚLTIMAS ${vm.stock} UDS]</span>` : `<span class="tag"><span class="live"></span> [STOCK // ${vm.stockFormatted}]</span>`}
+              ${vm.isCritical ? `<span class="tag tag-red"><span class="live warn"></span> ÚLTIMAS ${vm.stock} UDS</span>` : `<span class="tag"><span class="live"></span> ${vm.stock} EN STOCK</span>`}
             </div>
             ${vm.hasDiscount ? `<span class="save">[${vm.discountPct}]</span>` : ''}
           </div>
@@ -529,8 +529,8 @@ export class DomRenderer {
         <!-- Body -->
         <div class="card-body">
           <div class="card-meta">
-            <span class="card-ref">[REF // MNC-${vm.id.toUpperCase()}]</span>
-            <span class="card-origin">[ATELIER SOACHA]</span>
+            <span class="card-ref">MNC-${vm.id.toUpperCase()}</span>
+            <span class="card-origin">SOACHA</span>
           </div>
 
           <h3 class="card-title" onclick="window.MONARCC_APP.openQuickView('${vm.id}')" title="${vm.name}">
@@ -560,7 +560,7 @@ export class DomRenderer {
                           onclick="window.MONARCC_APP.selectColor('${vm.id}', ${idx}, event)"></button>
                 `).join('')}
               </div>
-            ` : `<span class="mono dim" style="font-size: 11px;">[${vm.activeColor.name}]</span>`}
+            ` : `<span class="mono dim card-single-color" style="font-size: 11px;">[${vm.activeColor.name}]</span>`}
           </div>
 
           <!-- Add to Bag -->
@@ -649,7 +649,7 @@ export class DomRenderer {
               </div>
             </div>
 
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+            <div class="breaker-actions">
               <a href="https://wa.me/573236043408?text=Hola%20Monarcc,%20quiero%20separar%20mi%20prenda%20del%20drop%20Motorsport" target="_blank" class="btn btn-gold">
                 <span>SEPARAR POR WHATSAPP</span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17l10-10M7 7h10v10"/></svg>
