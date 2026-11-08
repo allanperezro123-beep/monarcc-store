@@ -361,6 +361,19 @@ export class AsciiCrownField {
     if (!ctx) return;
 
     ctx.clearRect(0, 0, inst.width, inst.height);
+
+    // Subtle architectural scanlines matching reference aesthetic (whisper 0.008 alpha)
+    if (typeof ctx.beginPath === 'function') {
+      ctx.strokeStyle = 'rgba(244, 242, 238, 0.008)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let y = 0; y < inst.height; y += 4) {
+        ctx.moveTo(0, y + 0.5);
+        ctx.lineTo(inst.width, y + 0.5);
+      }
+      ctx.stroke();
+    }
+
     ctx.font = `500 11px "JetBrains Mono", ui-monospace, monospace`;
     ctx.textBaseline = 'top';
 

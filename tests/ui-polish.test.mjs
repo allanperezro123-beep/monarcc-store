@@ -1196,6 +1196,170 @@ test('Task 3.3: Clean Architecture inward Dependency Rule is strictly preserved 
   assert.equal(diffCore, '', 'src/domain and src/application must remain 100% untouched');
 });
 
+test('REQ-06 / Lab & Animated Mathematical Resources: index.html mounts #lab with 3 CAD plot videos, posters, formulas, and nav link', () => {
+  const html = readProjectFile('index.html');
+  const css = readProjectFile('style.css');
+
+  // Nav link exists
+  assert.match(html, /<a\s+href="#lab"[^>]*>Laboratorio<\/a>/i, 'Header nav must include link to #lab');
+
+  // #lab section exists with technical titles
+  assert.match(html, /<section[^>]*id="lab"[^>]*>/, 'index.html must include #lab section');
+  assert.match(html, /PATRONAJE COMPUTACIONAL/i, '#lab section must include computational patterning eyebrow');
+
+  // All 3 video files exist on disk with valid file size
+  const videoFiles = [
+    'media/math-plot-grid.mp4',
+    'media/math-lattice-wave.mp4',
+    'media/math-polar-contour.mp4'
+  ];
+  for (const vPath of videoFiles) {
+    const full = path.join(ROOT, vPath);
+    assert.ok(fs.existsSync(full), `Video file ${vPath} must exist on disk`);
+    const stat = fs.statSync(full);
+    assert.ok(stat.size > 100000 && stat.size < 2000000, `Video file ${vPath} size (${stat.size}B) must be between 100KB and 2MB`);
+  }
+
+  // All 3 poster images exist on disk
+  const posterFiles = [
+    'media/math-plot-grid-poster.jpg',
+    'media/math-lattice-wave-poster.jpg',
+    'media/math-polar-contour-poster.jpg'
+  ];
+  for (const pPath of posterFiles) {
+    const full = path.join(ROOT, pPath);
+    assert.ok(fs.existsSync(full), `Poster image ${pPath} must exist on disk`);
+    assert.ok(fs.statSync(full).size > 20000, `Poster image ${pPath} must have valid content (>20KB)`);
+  }
+
+  // Verify all 3 videos are embedded in index.html with autoplay loop muted playsinline
+  for (const vPath of videoFiles) {
+    const pattern = new RegExp(`<video[^>]*src="${vPath.replace(/\//g, '[/\\\\]')}"[^>]*>`, 'i');
+    assert.match(html, pattern, `index.html must embed video ${vPath}`);
+  }
+  const labVideos = [...html.matchAll(/<video\b[^>]*>/gi)].map((m) => m[0]);
+  for (const vTag of labVideos) {
+    assert.match(vTag, /\bautoplay\b/i, 'Lab video must have autoplay');
+    assert.match(vTag, /\bloop\b/i, 'Lab video must have loop');
+    assert.match(vTag, /\bmuted\b/i, 'Lab video must have muted');
+    assert.match(vTag, /\bplaysinline\b/i, 'Lab video must have playsinline');
+  }
+
+  // CSS rules exist
+  assert.match(css, /\.section-lab\b/, 'style.css must style .section-lab');
+  assert.match(css, /\.lab-grid\b/, 'style.css must style .lab-grid');
+  assert.match(css, /\.lab-card\b/, 'style.css must style .lab-card');
+  assert.match(css, /\.lab-simulator-panel\b/, 'style.css must style .lab-simulator-panel');
+});
+
+test('REQ-07 / AsciiLabViewer: interactive ASCII CAD simulator renders contour, crown, and grid modes with pointer ripple', async () => {
+  const prevWin = globalThis.window;
+  const prevDoc = globalThis.document;
+
+  const mockCtx = {
+    setTransform: () => {},
+    clearRect: () => {},
+    fillText: () => {},
+    beginPath: () => {},
+    moveTo: () => {},
+    lineTo: () => {},
+    stroke: () => {}
+  };
+
+  const canvasEl = {
+    id: 'lab-interactive-canvas',
+    width: 0,
+    height: 0,
+    parentElement: {
+      getBoundingClientRect: () => ({ width: 800, height: 320 }),
+      addEventListener: () => {},
+      removeEventListener: () => {}
+    },
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 800, height: 320 }),
+    getContext: () => mockCtx,
+    addEventListener: () => {},
+    removeEventListener: () => {}
+  };
+
+  const readoutEl = { textContent: '' };
+  const modeButtons = [
+    {
+      getAttribute: (k) => (k === 'data-lab-mode' ? 'contour' : null),
+      setAttribute: () => {},
+      classList: { toggle: () => {} },
+      addEventListener: () => {}
+    },
+    {
+      getAttribute: (k) => (k === 'data-lab-mode' ? 'crown' : null),
+      setAttribute: () => {},
+      classList: { toggle: () => {} },
+      addEventListener: () => {}
+    },
+    {
+      getAttribute: (k) => (k === 'data-lab-mode' ? 'grid' : null),
+      setAttribute: () => {},
+      classList: { toggle: () => {} },
+      addEventListener: () => {}
+    }
+  ];
+
+  globalThis.document = {
+    getElementById: (id) => {
+      if (id === 'lab-interactive-canvas') return canvasEl;
+      if (id === 'lab-readout') return readoutEl;
+      return null;
+    },
+    querySelectorAll: (sel) => {
+      if (sel === '[data-lab-mode]') return modeButtons;
+      return [];
+    }
+  };
+
+  globalThis.window = {
+    devicePixelRatio: 1,
+    matchMedia: () => ({ matches: false }),
+    addEventListener: () => {},
+    removeEventListener: () => {}
+  };
+
+  try {
+    const { AsciiLabViewer } = await import('../src/infrastructure/dom/AsciiLabViewer.js');
+    const viewer = new AsciiLabViewer();
+    viewer.init();
+
+    // 1. Initial mode is contour
+    assert.equal(viewer.mode, 'contour');
+    const contourSig = viewer._computeSignal(400, 160, 0);
+    assert.ok(contourSig.intensity > 0, 'Contour mode must yield positive intensity across terrain');
+
+    // 2. Crown mode
+    viewer.setMode('crown');
+    assert.equal(viewer.mode, 'crown');
+    const scale = Math.min(viewer.width * 0.22, viewer.height * 0.62);
+    const crownSpireSig = viewer._computeSignal(viewer.width * 0.5, viewer.height * 0.52 - scale * 0.45, 0);
+    assert.ok(crownSpireSig.intensity > 0.7, 'Crown mode must produce strong intensity at spire');
+
+    // 3. Grid mode
+    viewer.setMode('grid');
+    assert.equal(viewer.mode, 'grid');
+    const gridSig = viewer._computeSignal(200, 100, 0);
+    assert.ok(typeof gridSig.intensity === 'number', 'Grid mode produces valid intensity signal');
+
+    // 4. Pointer ripple activation
+    viewer.pointer.active = true;
+    viewer.pointer.x = 200;
+    viewer.pointer.y = 100;
+    viewer._updateReadout(200, 100, 1.0);
+    assert.match(readoutEl.textContent, /200px,\s*100px/, 'Readout must track pointer coordinates');
+    assert.match(readoutEl.textContent, /TENSOR:/, 'Readout must report dynamic tensor value');
+
+    viewer.destroy();
+  } finally {
+    globalThis.window = prevWin;
+    globalThis.document = prevDoc;
+  }
+});
+
 
 
 
