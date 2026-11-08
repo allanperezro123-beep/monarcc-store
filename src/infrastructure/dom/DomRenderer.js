@@ -184,12 +184,12 @@ export class DomRenderer {
       }
     }
 
-    // Totals
-    const subtotalEl = document.getElementById('cart-subtotal');
+    // Totals (sync canonical #cart-*-val IDs with legacy fallback)
+    const subtotalEl = document.getElementById('cart-subtotal-val') || document.getElementById('cart-subtotal');
     const discountRow = document.getElementById('cart-discount-row');
-    const discountVal = document.getElementById('cart-discount-value');
-    const shippingEl = document.getElementById('cart-shipping');
-    const totalEl = document.getElementById('cart-total');
+    const discountVal = document.getElementById('cart-discount-val') || document.getElementById('cart-discount-value');
+    const shippingEl = document.getElementById('cart-shipping-val') || document.getElementById('cart-shipping');
+    const totalEl = document.getElementById('cart-total-val') || document.getElementById('cart-total');
 
     if (subtotalEl) subtotalEl.textContent = vm.subtotalFormatted;
     if (discountRow) {
@@ -198,6 +198,33 @@ export class DomRenderer {
     }
     if (shippingEl) shippingEl.textContent = vm.shippingCostFormatted;
     if (totalEl) totalEl.textContent = vm.grandTotalFormatted;
+
+    // Free shipping progress bar & copy
+    const freeShipText = document.getElementById('free-shipping-text');
+    const freeShipPct = document.getElementById('free-shipping-percent');
+    const freeShipBar = document.getElementById('free-shipping-bar');
+
+    if (freeShipText || freeShipPct || freeShipBar) {
+      const parseCopDigits = (val) => Number(String(val || '').replace(/[^\d]/g, '')) || 0;
+      const subNum = parseCopDigits(vm.subtotalFormatted);
+      const remNum = parseCopDigits(vm.freeShippingRemainingFormatted);
+      const threshold = subNum + remNum;
+
+      let pct = 0;
+      let label = `Agrega ${vm.freeShippingRemainingFormatted || '$300.000 COP'} para ENVÍO GRATIS`;
+
+      if (vm.isFreeShipping && !vm.isEmpty) {
+        pct = 100;
+        label = '¡ENVÍO GRATIS DESBLOQUEADO EN TU PEDIDO!';
+      } else if (!vm.isEmpty && threshold > 0) {
+        pct = Math.min(99, Math.max(0, Math.round((subNum / threshold) * 100)));
+        label = `Te faltan ${vm.freeShippingRemainingFormatted} para ENVÍO GRATIS`;
+      }
+
+      if (freeShipText) freeShipText.textContent = label;
+      if (freeShipPct) freeShipPct.textContent = `${pct}%`;
+      if (freeShipBar) freeShipBar.style.width = `${pct}%`;
+    }
 
     // Coupons tags
     const tagsContainer = document.getElementById('cart-coupon-tags');
@@ -559,10 +586,14 @@ export class DomRenderer {
           </div>
           <img src="media/generated_vip_golden_jacket.jpg" alt="Pieza Secreta VIP" loading="lazy" style="filter: brightness(0.25) blur(3px);">
           <div class="lock-overlay">
-            <svg class="lock-crown-svg" viewBox="0 0 100 80" fill="currentColor">
-              <polyline points="18,62 16,30 35,48 50,18 65,48 84,30 82,62"/>
-              <circle cx="16" cy="24" r="4"/><circle cx="50" cy="11" r="4.5"/><circle cx="84" cy="24" r="4"/>
-              <line x1="16" y1="66" x2="84" y2="66" stroke="currentColor" stroke-width="4"/>
+            <svg class="lock-crown-svg" viewBox="440 365 720 595" fill="currentColor" fill-rule="evenodd">
+              <path pathLength="1" d="M 561 884 L 493 586 L 656 856 L 658 703 L 724 858 L 800 468 L 876 858 L 942 703 L 944 856 L 1107 586 L 1039 884 Z M 552 726 L 582 864 L 638 864 Z M 673 782 L 673 864 L 708 864 Z M 800 608 L 748 864 L 852 864 Z M 927 782 L 892 864 L 927 864 Z M 1048 726 L 962 864 L 1018 864 Z" />
+              <rect x="561" y="916" width="478" height="30" rx="2" pathLength="1" />
+              <circle cx="800" cy="398" r="23" pathLength="1" />
+              <circle cx="476" cy="531" r="20.5" pathLength="1" />
+              <circle cx="1124" cy="531" r="20.5" pathLength="1" />
+              <circle cx="654" cy="671" r="11.5" pathLength="1" />
+              <circle cx="946" cy="671" r="11.5" pathLength="1" />
             </svg>
             <strong>CÍRCULO MONARCA // DROP CERO</strong>
             <span>Acceso confidencial por código o triple clic en corona</span>

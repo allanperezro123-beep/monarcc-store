@@ -18,3 +18,7 @@ dist/
 image.png
 image copy.png
 
+# Agent Teams Lite / SDD local registry
+.atl/
+
+

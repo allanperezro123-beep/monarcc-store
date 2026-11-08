@@ -34,6 +34,7 @@ import { ScreenTransition } from './infrastructure/dom/ScreenTransition.js';
 import { MobileDock } from './infrastructure/dom/MobileDock.js';
 import { TouchGestures } from './infrastructure/dom/TouchGestures.js';
 import { ScrollMachine } from './infrastructure/dom/ScrollMachine.js';
+import { AsciiCrownField } from './infrastructure/dom/AsciiCrownField.js';
 import { GooglePayGateway } from './infrastructure/external/GooglePayGateway.js';
 
 // --- COMPOSITION ROOT FACTORY ---
@@ -44,7 +45,8 @@ export function bootstrapApplication() {
   const googlePayGateway = new GooglePayGateway();
   const domRenderer = new DomRenderer();
   const screenTransition = new ScreenTransition();
-  const scrollMachine = new ScrollMachine(60);
+  const scrollMachine = new ScrollMachine({ downThreshold: 14, topThreshold: 2 });
+  const asciiCrownField = new AsciiCrownField();
 
   // 2. Application State & Domain Aggregates
   const cart = new Cart();
@@ -141,7 +143,8 @@ export function bootstrapApplication() {
       });
 
       if (res.success) {
-        domRenderer.showToast(`✓ Agregado: ${res.item.name} (${chosenSize})`);
+        const addedName = res.addedItem?.name || res.item?.name || product?.name || 'Prenda';
+        domRenderer.showToast(`✓ Agregado: ${addedName} (${chosenSize})`);
       } else {
         domRenderer.showToast(res.error || 'No se pudo agregar a la bolsa');
       }
@@ -431,12 +434,20 @@ export function bootstrapApplication() {
       appApi.applyCoupon(code);
     },
 
+    openVip(source = 'footer') {
+      return vipController.unlock(source);
+    },
+
     openVipModal() {
       domRenderer.openVipModal();
     },
 
     closeVipModal() {
       domRenderer.closeVipModal();
+    },
+
+    closeSidebar() {
+      domRenderer.closeSidebar();
     },
 
     onLockedCardClick() {
@@ -476,11 +487,19 @@ export function bootstrapApplication() {
   window.MONARCC_APP = appApi;
 
   // 7. Initial Setup & Event Listeners
+  const activeIntervals = [];
+  const activeTimeouts = [];
+
   function initPreloader() {
     const preloader = document.getElementById('preloader');
     const counter = document.getElementById('preloader-counter');
     const fill = document.getElementById('preloader-fill');
-    if (!preloader || !counter || !fill) return;
+    if (!preloader || !counter || !fill) {
+      if (scrollMachine.isAtTop()) {
+        scrollMachine.triggerCrownDraw();
+      }
+      return;
+    }
 
     let pct = 0;
     const timer = setInterval(() => {
@@ -490,17 +509,25 @@ export function bootstrapApplication() {
         clearInterval(timer);
         counter.textContent = '100%';
         fill.style.width = '100%';
-        setTimeout(() => {
-          preloader.classList.add('is-done');
+        activeTimeouts.push(
           setTimeout(() => {
-            preloader.style.display = 'none';
-          }, 950);
-        }, 350);
+            preloader.classList.add('is-done');
+            if (scrollMachine.isAtTop() && (window.scrollY || window.pageYOffset || 0) <= 2) {
+              scrollMachine.triggerCrownDraw();
+            }
+            activeTimeouts.push(
+              setTimeout(() => {
+                preloader.style.display = 'none';
+              }, 950)
+            );
+          }, 350)
+        );
       } else {
         counter.textContent = (pct < 10 ? '0' : '') + pct + '%';
         fill.style.width = pct + '%';
       }
     }, 40);
+    activeIntervals.push(timer);
   }
 
   function setupShippingSelects() {
@@ -521,18 +548,19 @@ export function bootstrapApplication() {
     if (!d || !h || !m || !s) return;
 
     const target = Date.now() + (2 * 24 * 3600 * 1000) + (14 * 3600 * 1000) + (38 * 60 * 1000);
-    setInterval(() => {
+    const cdTimer = setInterval(() => {
       const diff = Math.max(0, target - Date.now());
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const mins = Math.floor((diff / (1000 * 60)) % 60);
-      const secs = Math.floor((diff / 1000) % 60);
+      const secs = Math.floor((diff / (1000) % 60));
 
       d.textContent = days < 10 ? '0' + days : days;
       h.textContent = hours < 10 ? '0' + hours : hours;
       m.textContent = mins < 10 ? '0' + mins : mins;
       s.textContent = secs < 10 ? '0' + secs : secs;
     }, 1000);
+    activeIntervals.push(cdTimer);
   }
 
   function setupListeners() {
@@ -551,10 +579,6 @@ export function bootstrapApplication() {
     if (cartToggle) cartToggle.addEventListener('click', () => domRenderer.openCart());
     if (cartClose) cartClose.addEventListener('click', () => domRenderer.closeCart());
     if (cartBackdrop) cartBackdrop.addEventListener('click', () => domRenderer.closeCart());
-
-    // Top discount trigger
-    const topDisc = document.getElementById('top-discount-trigger');
-    if (topDisc) topDisc.addEventListener('click', () => domRenderer.openDiscountModal());
 
     // Category chips
     const catChips = document.getElementById('catalog-category-chips');
@@ -647,31 +671,34 @@ export function bootstrapApplication() {
       });
     });
 
-    // Easter egg crown clicks
-    const crowns = [
-      document.getElementById('header-logo'),
-      document.getElementById('hero-crown-trigger')
-    ];
-    crowns.forEach(el => {
-      if (el) el.addEventListener('click', () => vipController.handleTap());
-    });
+    // Header brand smart click: scroll smoothly to top when scrolled, or count secret VIP taps when at 100% top
+    const headerLogo = document.getElementById('header-logo');
+    if (headerLogo) {
+      headerLogo.addEventListener('click', () => {
+        if (!scrollMachine.isAtTop()) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+        vipController.handleTap();
+      });
+    }
+
+    const heroCrown = document.getElementById('hero-crown-trigger');
+    if (heroCrown) {
+      heroCrown.addEventListener('click', () => vipController.handleTap());
+    }
 
     // Easter egg keyboard buffer
     window.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       vipController.handleKey(e.key);
     });
-
-    // Top VIP button
-    const vipTop = document.getElementById('vip-top-trigger');
-    if (vipTop) {
-      vipTop.addEventListener('click', () => vipController.unlock('acceso directo VIP'));
-    }
   }
 
-  // Execute Boot Sequence
-  initPreloader();
+  // Execute Boot Sequence (scrollMachine first so initial brand mode is ready for preloader)
   scrollMachine.init();
+  initPreloader();
+  asciiCrownField.init();
   mobileDock.init();
   touchGestures.init();
   setupShippingSelects();
@@ -689,7 +716,15 @@ export function bootstrapApplication() {
     catalogController,
     trackingController,
     vipController,
-    domRenderer
+    domRenderer,
+    scrollMachine,
+    asciiCrownField,
+    destroy() {
+      scrollMachine.destroy();
+      asciiCrownField.destroy();
+      activeIntervals.forEach(clearInterval);
+      activeTimeouts.forEach(clearTimeout);
+    }
   };
 }
 
