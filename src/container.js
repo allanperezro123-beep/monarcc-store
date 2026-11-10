@@ -27,12 +27,14 @@ import { CartController } from './adapters/controllers/CartController.js';
 import { CatalogController } from './adapters/controllers/CatalogController.js';
 import { TrackingController } from './adapters/controllers/TrackingController.js';
 import { VipController } from './adapters/controllers/VipController.js';
+import { CardFormController } from './adapters/controllers/CardFormController.js';
 
 // Infrastructure
 import { DomRenderer } from './infrastructure/dom/DomRenderer.js';
 import { ScreenTransition } from './infrastructure/dom/ScreenTransition.js';
 import { MobileDock } from './infrastructure/dom/MobileDock.js';
 import { TouchGestures } from './infrastructure/dom/TouchGestures.js';
+import { CardFormView } from './infrastructure/dom/CardFormView.js';
 import { ScrollMachine } from './infrastructure/dom/ScrollMachine.js';
 import { AsciiCrownField } from './infrastructure/dom/AsciiCrownField.js';
 import { GooglePayGateway } from './infrastructure/external/GooglePayGateway.js';
@@ -102,6 +104,27 @@ export function bootstrapApplication() {
     catalogController,
     cartController,
     domRenderer
+  });
+
+  // Card payment form: el controlador (sin DOM) valida y bloquea doble envío;
+  // la vista solo enlaza eventos. El gateway recibe datos mínimos (sin PAN/CVV).
+  const cardFormController = new CardFormController({
+    submitPayment: (details) => googlePayGateway.processCardPayment(cart.getAll(), details)
+  });
+  const cardFormView = new CardFormView({
+    modal: document.getElementById('card-modal'),
+    form: document.getElementById('card-form'),
+    controller: cardFormController,
+    onPaid: (res) => {
+      domRenderer.closeCardModal();
+      cart.clear();
+      cartController.updateUI();
+      domRenderer.renderSuccessModal(res.orderNumber, res.guideNumber);
+    },
+    onFailed: (message, { modalOpen }) => {
+      // Si el usuario cerró el modal con el pago en vuelo, el error no sería visible.
+      if (!modalOpen) domRenderer.showToast(message);
+    }
   });
 
   // 5. Mobile & Touch Drivers
@@ -358,19 +381,6 @@ export function bootstrapApplication() {
 
     closeCardModal() {
       domRenderer.closeCardModal();
-    },
-
-    async confirmCardPayment() {
-      domRenderer.closeCardModal();
-      domRenderer.showToast('Procesando pago con tarjeta (Cifrado 256-bit)...');
-      const res = await googlePayGateway.processCardPayment(cart.getAll(), {});
-      if (res.success) {
-        cart.clear();
-        cartController.updateUI();
-        domRenderer.renderSuccessModal(res.orderNumber, res.guideNumber);
-      } else {
-        domRenderer.showToast(res.error || 'Error al procesar el pago');
-      }
     },
 
     closeSuccessModal() {
@@ -704,6 +714,7 @@ export function bootstrapApplication() {
   setupShippingSelects();
   setupCountdown();
   setupListeners();
+  cardFormView.init();
 
   // Initial Data Renders
   productRepository.getReviews().then(reviews => domRenderer.renderReviews(reviews));
@@ -720,6 +731,7 @@ export function bootstrapApplication() {
     scrollMachine,
     asciiCrownField,
     destroy() {
+      cardFormView.destroy();
       scrollMachine.destroy();
       asciiCrownField.destroy();
       activeIntervals.forEach(clearInterval);

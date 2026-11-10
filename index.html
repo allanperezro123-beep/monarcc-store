@@ -862,33 +862,59 @@
 
   <!-- Card Payment Modal -->
   <div class="modal" id="card-modal">
-    <div class="modal-box">
-      <button type="button" class="icon-btn modal-close" onclick="window.MONARCC_APP.closeCardModal()" aria-label="Cerrar">✕</button>
-      <div class="modal-pad">
-        <span class="eyebrow"><span class="dot"></span> PASARELA SEGURA 256-BIT</span>
-        <h3 class="h-display" style="font-size: 22px; margin: 6px 0 16px;">PAGO CON TARJETA</h3>
+    <div class="modal-box pay-box" role="dialog" aria-modal="true" aria-labelledby="card-modal-title">
+      <div class="pay-pad">
+        <header class="pay-head">
+          <div class="pay-head-text">
+            <span class="eyebrow pay-eyebrow"><span class="dot" aria-hidden="true"></span><span>PASARELA SEGURA 256-BIT</span></span>
+            <h3 class="h-display pay-title" id="card-modal-title">PAGO CON TARJETA</h3>
+          </div>
+          <button type="button" class="icon-btn modal-close pay-close" onclick="window.MONARCC_APP.closeCardModal()" aria-label="Cerrar">✕</button>
+        </header>
 
-        <form onsubmit="event.preventDefault(); window.MONARCC_APP.confirmCardPayment();" style="display: grid; gap: 14px;">
-          <div>
-            <label class="label">Número de tarjeta</label>
-            <input type="text" class="input mono" placeholder="4500 0000 0000 0000" maxlength="19" required>
-          </div>
-          <div>
-            <label class="label">Nombre del titular</label>
-            <input type="text" class="input" placeholder="NOMBRE COMPLETO" required style="text-transform: uppercase;">
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-              <label class="label">Vencimiento</label>
-              <input type="text" class="input mono" placeholder="MM/AA" maxlength="5" required>
+        <form id="card-form" class="pay-form" novalidate>
+          <div class="pay-field">
+            <div class="pay-label-row">
+              <label class="label" for="card-number">Número de tarjeta</label>
+              <span class="pay-brand" id="card-brand" aria-live="polite"></span>
             </div>
-            <div>
-              <label class="label">CVV</label>
-              <input type="password" class="input mono" placeholder="123" maxlength="4" required>
+            <input id="card-number" name="cardnumber" type="text" class="input mono" inputmode="numeric" autocomplete="cc-number" spellcheck="false" autocapitalize="off" placeholder="4500 0000 0000 0000" aria-required="true" aria-describedby="card-number-error">
+            <p class="pay-error" id="card-number-error" aria-live="polite"></p>
+          </div>
+
+          <div class="pay-field">
+            <label class="label" for="card-holder">Nombre del titular</label>
+            <input id="card-holder" name="ccname" type="text" class="input" autocomplete="cc-name" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="NOMBRE COMPLETO" aria-required="true" aria-describedby="card-holder-error">
+            <p class="pay-error" id="card-holder-error" aria-live="polite"></p>
+          </div>
+
+          <div class="pay-row">
+            <div class="pay-field">
+              <label class="label" for="card-expiry">Vencimiento</label>
+              <input id="card-expiry" name="cc-exp" type="text" class="input mono" inputmode="numeric" autocomplete="cc-exp" spellcheck="false" autocapitalize="off" placeholder="MM/AA" aria-required="true" aria-describedby="card-expiry-error">
+              <p class="pay-error" id="card-expiry-error" aria-live="polite"></p>
+            </div>
+            <div class="pay-field">
+              <label class="label" for="card-cvv">CVV</label>
+              <div class="pay-control">
+                <input id="card-cvv" name="cvc" type="password" class="input mono" inputmode="numeric" autocomplete="cc-csc" spellcheck="false" autocapitalize="off" placeholder="123" aria-required="true" aria-describedby="card-cvv-error">
+                <button type="button" class="pay-reveal" id="card-cvv-reveal" aria-label="Mostrar CVV" aria-pressed="false">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                    <path class="pay-reveal-slash" d="M4 4l16 16"/>
+                  </svg>
+                </button>
+              </div>
+              <p class="pay-error" id="card-cvv-error" aria-live="polite"></p>
             </div>
           </div>
-          <button type="submit" class="btn btn-gold btn-block" style="margin-top: 8px;">
-            CONFIRMAR PAGO SEGURO
+
+          <p class="pay-status" id="card-form-status" role="status" aria-live="polite" hidden></p>
+
+          <button type="submit" class="btn btn-gold btn-block pay-submit" id="card-submit">
+            <span class="pay-spinner" aria-hidden="true"></span>
+            <span class="pay-submit-label">CONFIRMAR PAGO SEGURO</span>
           </button>
         </form>
       </div>
