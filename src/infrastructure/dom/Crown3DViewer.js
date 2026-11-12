@@ -146,12 +146,16 @@ export class Crown3DViewer {
     this.container = document.getElementById(this.containerId);
     this.lockup = document.querySelector(this.lockupSelector);
 
+    console.log('[Crown3DViewer] init() invoked. Container:', this.container, 'Lockup:', this.lockup);
+
     if (!this.container) {
+      console.warn('[Crown3DViewer] Container element not found:', this.containerId);
       return false;
     }
 
     try {
       this.three = await resolveThree(this.injectedThree);
+      console.log('[Crown3DViewer] Three.js resolved:', !!this.three);
       if (!this.three) return false;
 
       // Verify WebGL support
@@ -175,9 +179,10 @@ export class Crown3DViewer {
 
       this.isVisible = true;
       this._animate();
+      console.log('[Crown3DViewer] Successfully mounted and started animation loop.');
       return true;
     } catch (err) {
-      console.warn('[Crown3DViewer] Initialization failed, maintaining SVG fallback:', err);
+      console.error('[Crown3DViewer] Initialization failed with error:', err);
       return false;
     }
   }
@@ -379,11 +384,11 @@ export class Crown3DViewer {
       entries.forEach((entry) => {
         const wasVisible = this.isVisible;
         this.isVisible = entry.isIntersecting;
-        if (!wasVisible && this.isVisible) {
+        if (!wasVisible && this.isVisible && !this.animId) {
           this._animate();
         }
       });
-    }, { threshold: 0.05 });
+    }, { rootMargin: '300px 0px', threshold: 0.01 });
 
     this.observer.observe(heroSection);
   }
@@ -505,22 +510,24 @@ export class Crown3DViewer {
 
   _animate() {
     if (!this.isVisible || !this.renderer || !this.scene || !this.camera) {
+      this.animId = null;
       return;
     }
 
-    // Check prefers-reduced-motion
+    // Check prefers-reduced-motion: if enabled, reduce amplitude rather than freezing dead
     const prefersReducedMotion = typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const amplitudeFactor = prefersReducedMotion ? 0.35 : 1.0;
 
     const delta = this.clock ? Math.min(this.clock.getDelta(), 0.1) : 0.016;
     const time = this.clock ? this.clock.getElapsedTime() : 0;
 
-    if (!prefersReducedMotion && this.crownGroup) {
+    if (this.crownGroup) {
       // 1. Idle controlled ambient turntable sweep (±17.2° yaw, ±4.0° pitch)
       // Ensures the logo is ALWAYS front-facing, unmistakable and legible,
       // while showcasing full 3D bevels, extruded thickness, and specular highlights.
-      const idleRotY = Math.sin(time * 0.75) * 0.30;
-      const idleRotX = Math.sin(time * 0.55) * 0.07;
+      const idleRotY = Math.sin(time * 0.75) * 0.30 * amplitudeFactor;
+      const idleRotX = Math.sin(time * 0.55) * 0.07 * amplitudeFactor;
 
       // 2. Drag inertia friction decay & gentle elastic return to front orientation
       if (!this.isDragging) {

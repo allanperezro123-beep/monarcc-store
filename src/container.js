@@ -493,7 +493,9 @@ export function bootstrapApplication() {
 
     triggerScreenTransition(label, callback, minDuration) {
       screenTransition.trigger(label, callback, minDuration);
-    }
+    },
+
+    crown3DViewer
   };
 
   window.MONARCC_APP = appApi;
