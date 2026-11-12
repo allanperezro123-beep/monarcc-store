@@ -113,6 +113,10 @@ export class Crown3DViewer {
     this.targetRotX = 0;
     this.currentRotY = 0;
     this.currentRotX = 0;
+    this.manualRotY = 0;
+    this.manualRotX = 0;
+    this.hoverRotY = 0;
+    this.hoverRotX = 0;
     this.dragVelocityY = 0;
     this.dragVelocityX = 0;
     this.lastPointerX = 0;
@@ -328,27 +332,27 @@ export class Crown3DViewer {
     const THREE = this.three;
 
     // Warm, broken ambient light (never pitch-black shadows)
-    const ambientLight = new THREE.AmbientLight(0x2A241B, 1.4);
+    const ambientLight = new THREE.AmbientLight(0x32281D, 1.6);
     this.scene.add(ambientLight);
 
-    // Key Light: Upper right warm champagne highlight
-    this.keyLight = new THREE.DirectionalLight(0xFFF4DE, 2.5);
-    this.keyLight.position.set(3.5, 4.2, 4.5);
+    // Key Light: Upper right warm champagne highlight (illuminates face with rich gold speculars)
+    this.keyLight = new THREE.DirectionalLight(0xFFF6E2, 2.6);
+    this.keyLight.position.set(2.5, 3.8, 5.0);
     this.scene.add(this.keyLight);
 
     // Fill Light: Lower left bronze/gold reflection
-    const fillLight = new THREE.DirectionalLight(0xC5A46D, 1.6);
-    fillLight.position.set(-4.0, -2.5, 3.2);
+    const fillLight = new THREE.DirectionalLight(0xC5A46D, 1.8);
+    fillLight.position.set(-3.5, -2.0, 3.5);
     this.scene.add(fillLight);
 
     // Rim Light: Top back subtle edge highlight
     const rimLight = new THREE.DirectionalLight(0xE4CA92, 1.8);
-    rimLight.position.set(0, 3.8, -4.0);
+    rimLight.position.set(0, 3.5, -4.0);
     this.scene.add(rimLight);
 
     // Interactive Point Light (moves slightly with pointer to trace specular facets)
-    this.pointLight = new THREE.PointLight(0xF7E8C8, 1.2, 7.0);
-    this.pointLight.position.set(0, 0, 2.0);
+    this.pointLight = new THREE.PointLight(0xF7E8C8, 1.4, 8.0);
+    this.pointLight.position.set(0, 0, 2.5);
     this.scene.add(this.pointLight);
   }
 
@@ -412,11 +416,16 @@ export class Crown3DViewer {
       const deltaX = e.clientX - this.lastPointerX;
       const deltaY = e.clientY - this.lastPointerY;
 
-      this.dragVelocityY = deltaX * 0.007;
-      this.dragVelocityX = deltaY * 0.005;
+      this.dragVelocityY = deltaX * 0.006;
+      this.dragVelocityX = deltaY * 0.004;
 
-      this.targetRotY += this.dragVelocityY;
-      this.targetRotX += this.dragVelocityX;
+      this.manualRotY += this.dragVelocityY;
+      this.manualRotX += this.dragVelocityX;
+
+      // Bound interactive drag rotation to a generous inspection window (±55° yaw, ±22° pitch)
+      // so the user can inspect the 3D volume without the logo flipping backwards or vanishing edge-on
+      this.manualRotY = Math.max(-0.96, Math.min(0.96, this.manualRotY));
+      this.manualRotX = Math.max(-0.38, Math.min(0.38, this.manualRotX));
 
       this.lastPointerX = e.clientX;
       this.lastPointerY = e.clientY;
@@ -428,11 +437,11 @@ export class Crown3DViewer {
         const normY = ((e.clientY - rect.top) / rect.height) * 2 - 1;
 
         if (Math.abs(normX) <= 1.8 && Math.abs(normY) <= 1.8) {
-          this.targetRotY = normX * 0.42;
-          this.targetRotX = -normY * 0.28;
+          this.hoverRotY = normX * 0.22;
+          this.hoverRotX = -normY * 0.16;
 
           if (this.pointLight) {
-            this.pointLight.position.x = normX * 1.5;
+            this.pointLight.position.x = normX * 1.6;
             this.pointLight.position.y = -normY * 1.2;
           }
         }
@@ -449,8 +458,9 @@ export class Crown3DViewer {
 
   _handlePointerLeave() {
     if (!this.isDragging) {
-      // Smoothly return towards center when cursor leaves
-      this.targetRotX = 0;
+      // Smoothly return hover tilt towards center when cursor leaves
+      this.hoverRotX = 0;
+      this.hoverRotY = 0;
       if (this.pointLight) {
         this.pointLight.position.x = 0;
         this.pointLight.position.y = 0;
@@ -506,36 +516,42 @@ export class Crown3DViewer {
     const time = this.clock ? this.clock.getElapsedTime() : 0;
 
     if (!prefersReducedMotion && this.crownGroup) {
-      // 1. Idle rotation and gentle floating oscillation
+      // 1. Idle controlled ambient turntable sweep (±17.2° yaw, ±4.0° pitch)
+      // Ensures the logo is ALWAYS front-facing, unmistakable and legible,
+      // while showcasing full 3D bevels, extruded thickness, and specular highlights.
+      const idleRotY = Math.sin(time * 0.75) * 0.30;
+      const idleRotX = Math.sin(time * 0.55) * 0.07;
+
+      // 2. Drag inertia friction decay & gentle elastic return to front orientation
       if (!this.isDragging) {
-        // Apply inertia drag decay
         if (Math.abs(this.dragVelocityY) > 0.0001) {
-          this.targetRotY += this.dragVelocityY;
-          this.dragVelocityY *= 0.94;
-        } else {
-          // Slow continuous ambient spin
-          this.targetRotY += 0.0028;
+          this.manualRotY += this.dragVelocityY;
+          this.dragVelocityY *= 0.90;
+        }
+        if (Math.abs(this.dragVelocityX) > 0.0001) {
+          this.manualRotX += this.dragVelocityX;
+          this.dragVelocityX *= 0.90;
         }
 
-        if (Math.abs(this.dragVelocityX) > 0.0001) {
-          this.targetRotX += this.dragVelocityX;
-          this.dragVelocityX *= 0.94;
-        }
+        // Soft elastic spring return towards center so the logo always faces the viewer
+        this.manualRotY *= 0.955;
+        this.manualRotX *= 0.955;
       }
 
-      // Clamp vertical pitch tilt to prevent flipping upside down
-      this.targetRotX = Math.max(-0.45, Math.min(0.45, this.targetRotX));
+      // Calculate combined target angles
+      const targetY = idleRotY + this.manualRotY + this.hoverRotY;
+      const targetX = idleRotX + this.manualRotX + this.hoverRotX;
 
-      // Damped lerp for silky smooth organic motion
-      this.currentRotY += (this.targetRotY - this.currentRotY) * 0.065;
-      this.currentRotX += (this.targetRotX - this.currentRotX) * 0.065;
+      // Damped lerp for silky smooth organic motion (60-120fps)
+      this.currentRotY += (targetY - this.currentRotY) * 0.075;
+      this.currentRotX += (targetX - this.currentRotX) * 0.075;
 
       this.crownGroup.rotation.y = this.currentRotY;
       this.crownGroup.rotation.x = this.currentRotX;
 
       // Gentle vertical floating breathing
-      this.crownGroup.position.y = Math.sin(time * 1.5) * 0.045;
-      const breathingScale = 1 + Math.sin(time * 1.1) * 0.012;
+      this.crownGroup.position.y = Math.sin(time * 1.4) * 0.04;
+      const breathingScale = 1 + Math.sin(time * 1.0) * 0.012;
       this.crownGroup.scale.set(breathingScale, breathingScale, breathingScale);
 
       // Handle specular flash decay
@@ -543,10 +559,10 @@ export class Crown3DViewer {
         this.flashIntensity -= delta * 2.2;
         if (this.flashIntensity < 0) this.flashIntensity = 0;
         if (this.keyLight) {
-          this.keyLight.intensity = 2.5 + this.flashIntensity * 2.0;
+          this.keyLight.intensity = 2.6 + this.flashIntensity * 2.0;
         }
         if (this.pointLight) {
-          this.pointLight.intensity = 1.2 + this.flashIntensity * 1.5;
+          this.pointLight.intensity = 1.4 + this.flashIntensity * 1.6;
         }
       }
     }

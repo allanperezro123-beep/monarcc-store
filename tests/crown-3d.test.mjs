@@ -21,6 +21,10 @@ test('REQ-3D / Crown3DViewer: instantiates with clean initial state and disposab
   assert.equal(viewer.isDragging, false);
   assert.equal(viewer.currentRotY, 0);
   assert.equal(viewer.currentRotX, 0);
+  assert.equal(viewer.manualRotY, 0);
+  assert.equal(viewer.manualRotX, 0);
+  assert.equal(viewer.hoverRotY, 0);
+  assert.equal(viewer.hoverRotX, 0);
   assert.deepEqual(viewer.disposables, []);
 });
 
